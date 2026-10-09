@@ -159,4 +159,14 @@ describe("buildOwnerEmail", () => {
     expect(m.text).toContain("Yeni saat senin onayını bekliyor.");
     expect(m.text).toContain("aşağıdaki zamana taşıdı.");
   });
+
+  it("kişi de değiştiyse önceki kişiyi gösterir, yalnızca saat değiştiyse göstermez", () => {
+    const withPerson = buildOwnerEmail({ ...owner, event: "rescheduled", previousResourceName: "Burak" });
+    expect(withPerson.text).toContain("Kiminle: Ali (önceden Burak)");
+    const timeOnly = buildOwnerEmail({ ...owner, event: "rescheduled" });
+    expect(timeOnly.text).toContain("Kiminle: Ali");
+    expect(timeOnly.text).not.toContain("önceden");
+    // önceki kişi yalnızca saat değişikliği e-postasında anlamlıdır
+    expect(buildOwnerEmail({ ...owner, previousResourceName: "Burak" }).text).not.toContain("önceden");
+  });
 });

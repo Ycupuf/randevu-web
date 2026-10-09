@@ -106,7 +106,7 @@ appointments tetikleyicisi ─► email_outbox ─► Edge Function `send-emails
 - **İşletmeye:** işletmenin sahip hesaplarına ve randevudaki kaynağa bağlı personel hesabına, iki durumda:
   - müşteri sitesinden **yeni randevu** alınınca (onay bekliyorsa ayrı konu satırıyla): müşteri adı, telefon, not, ek form cevapları (plaka vb.) ve panele bağlantı;
   - müşteri **kendi randevusunu iptal edince**: aynı bilgiler ve varsa iptal nedeni, "bu saat yeniden boş";
-  - müşteri **randevu saatini (ya da kişiyi) değiştirince**: eski ve yeni zaman; işletme manuel onay istiyorsa "yeni saat onayını bekliyor" notuyla.
+  - müşteri **randevu saatini (ya da kişiyi) değiştirince**: eski ve yeni zaman; işletme manuel onay istiyorsa "yeni saat onayını bekliyor" notuyla. Kişi de değiştiyse **eski kişinin** personel hesabına da gider ("önceden Ali").
   Sahibin panelden kendi girdiği, iptal ettiği ya da taşıdığı randevu için kendisine e-posta gitmez (kimin yaptığı `cancelled_by` / `rescheduled_by` sütunlarında tutulur).
 - E-postası olmayan (telefonla gelen) ve `@randevu.test` demo hesaplarına e-posta gitmez.
 - Anahtar yokken bile veri yüklenir ve şablon çizilir, sonra `skipped` yazılır: bir hata varsa `email_outbox.error` sütununda görünür.
@@ -122,6 +122,15 @@ appointments tetikleyicisi ─► email_outbox ─► Edge Function `send-emails
 Alan adı doğrulanmadan Resend yalnızca **hesap sahibinin kendi e-postasına** gönderir; başka adreslere gönderim `failed` olur (neden `email_outbox.error` sütununda). Herkese gönderim için Resend'de bir alan adı doğrulayıp `EMAIL_FROM`'u onunla ayarla.
 
 Kuyruğa bakmak için: `select kind, to_email, status, error from email_outbox order by created_at desc;`
+
+## Panel bildirimleri (uygulama içi)
+
+E-postadan bağımsız, her zaman açık: `notifications` tablosu (migration 15). Tetikleyiciler yazar, panelin **Bildirimler** sekmesi gösterir.
+
+- Olaylar: yeni online randevu, müşteri iptali, müşteri saat/kişi değişikliği ve **yeni müşteri kaydı** (işletmede ilk kez randevu alan hesaplı müşteri; panelden elle eklenen hesapsız müşteri sayılmaz).
+- Görünürlük RLS ile: sahip işletmenin hepsini, personel yalnızca kendi kaynağını ilgilendirenleri (kişi değişen taşımada eski kaynağın personeli de) görür. Okundu bilgisi kullanıcı başınadır (`notification_reads`).
+- Bildirim satırı yalnızca olayı ve ek veriyi taşır; müşteri, hizmet, zaman bilgisi canlı okunur (bilgi hiç bayatlamaz). 90 günden eskileri her gece silinir (`pg_cron`).
+- Demo sıfırlaması sırasında üretilen örnek randevular bildirim üretmez; randevu silinince bildirimi de gider.
 
 ## Bilinen eksikler
 

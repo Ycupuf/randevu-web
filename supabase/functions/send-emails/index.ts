@@ -27,7 +27,7 @@ type OutboxRow = {
   kind: OutboxKind;
   appointment_id: string;
   to_email: string;
-  payload: { cancelled_by?: string | null; previous_starts_at?: string } | null;
+  payload: { cancelled_by?: string | null; previous_starts_at?: string; previous_resource_name?: string } | null;
   attempts: number;
 };
 
@@ -128,6 +128,7 @@ Deno.serve(async () => {
           appointmentId: a.id,
           event: row.kind === "owner_cancelled" ? "cancelled" : row.kind === "owner_rescheduled" ? "rescheduled" : "new",
           previousStartsAt: row.payload?.previous_starts_at,
+          previousResourceName: row.payload?.previous_resource_name,
           cancelReason: a.cancel_reason,
           pending: a.status === "pending",
           business,

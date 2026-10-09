@@ -167,6 +167,7 @@ export type OwnerEmailContext = {
   appointmentId: string;
   event?: "new" | "cancelled" | "rescheduled"; // varsayılan: new
   previousStartsAt?: string; // yalnızca event = "rescheduled"
+  previousResourceName?: string; // yalnızca kişi de değiştiyse
   cancelReason?: string | null; // yalnızca event = "cancelled"
   pending: boolean; // true: işletmenin onayını bekliyor (event = "new" ya da "rescheduled")
   business: { name: string; slug: string };
@@ -217,7 +218,7 @@ export function buildOwnerEmail(ctx: OwnerEmailContext): BuiltEmail {
     ...(customer.phone ? ([["Telefon", customer.phone]] as [string, string][]) : []),
     ...(customer.email ? ([["E-posta", customer.email]] as [string, string][]) : []),
     ["Hizmet", ctx.services.map((s) => s.name).join(", ")],
-    ["Kiminle", ctx.resourceName],
+    ["Kiminle", moved && ctx.previousResourceName ? `${ctx.resourceName} (önceden ${ctx.previousResourceName})` : ctx.resourceName],
     ["Zaman", `${formatDateTime(ctx.startsAt, timeZone)} – ${formatClock(ctx.endsAt, timeZone)}`],
     ...ctx.answers.map((a) => [a.label, a.value] as [string, string]),
     ...(ctx.note ? ([["Müşteri notu", ctx.note]] as [string, string][]) : []),

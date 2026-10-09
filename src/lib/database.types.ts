@@ -399,6 +399,104 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_reads: {
+        Row: {
+          notification_id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          notification_id: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          notification_id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_reads_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          appointment_id: string | null
+          business_id: string
+          created_at: string
+          customer_id: string | null
+          data: Json
+          extra_resource_id: string | null
+          id: string
+          resource_id: string | null
+          type: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          business_id: string
+          created_at?: string
+          customer_id?: string | null
+          data?: Json
+          extra_resource_id?: string | null
+          id?: string
+          resource_id?: string | null
+          type: string
+        }
+        Update: {
+          appointment_id?: string | null
+          business_id?: string
+          created_at?: string
+          customer_id?: string | null
+          data?: Json
+          extra_resource_id?: string | null
+          id?: string
+          resource_id?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_extra_resource_id_fkey"
+            columns: ["extra_resource_id"]
+            isOneToOne: false
+            referencedRelation: "resources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "resources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       resource_services: {
         Row: {
           resource_id: string
@@ -670,6 +768,10 @@ export type Database = {
         }
         Returns: string
       }
+      mark_notifications_read: {
+        Args: { p_business_id: string }
+        Returns: undefined
+      }
       reschedule_appointment: {
         Args: { p_id: string; p_new_starts_at: string; p_resource_id?: string }
         Returns: undefined
@@ -682,6 +784,10 @@ export type Database = {
           p_status: Database["public"]["Enums"]["appointment_status"]
         }
         Returns: undefined
+      }
+      unread_notification_count: {
+        Args: { p_business_id: string }
+        Returns: number
       }
     }
     Enums: {
