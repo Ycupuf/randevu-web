@@ -130,4 +130,18 @@ describe("buildOwnerEmail", () => {
     expect(m.html).not.toContain("<b>X</b>");
     expect(m.html).toContain("&lt;b&gt;X&lt;/b&gt;");
   });
+
+  it("müşteri iptalinde konu, başlık ve iptal nedeni farklıdır", () => {
+    const m = buildOwnerEmail({ ...owner, event: "cancelled", cancelReason: "Hastayım" });
+    expect(m.subject).toBe("Randevu iptal edildi: Ayşe Yılmaz, 13 Ekim 14:00");
+    expect(m.text).toContain("Müşteri randevusunu iptal etti");
+    expect(m.text).toContain("Bu saat yeniden boş");
+    expect(m.text).toContain("İptal nedeni: Hastayım");
+    expect(m.text).not.toContain("onaylayabilir");
+  });
+
+  it("iptal nedeni yoksa satır eklenmez, iptal nedeni yalnızca iptal e-postasında görünür", () => {
+    expect(buildOwnerEmail({ ...owner, event: "cancelled", cancelReason: null }).text).not.toContain("İptal nedeni");
+    expect(buildOwnerEmail({ ...owner, cancelReason: "Hastayım" }).text).not.toContain("İptal nedeni");
+  });
 });

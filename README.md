@@ -103,7 +103,10 @@ appointments tetikleyicisi ─► email_outbox ─► Edge Function `send-emails
 
 - Müşteri sitesi, panel ve elle girilen randevu **aynı tetikleyiciden** geçer; e-posta mantığı tek yerde.
 - **Müşteriye:** talep alındı, onaylandı, iptal (işletme/müşteri ayrımıyla), saat değişti ve 24 saat hatırlatma.
-- **İşletmeye:** müşteri sitesinden yeni randevu alınınca (onay bekliyorsa ayrı konu satırıyla) işletmenin sahip hesaplarına ve randevudaki kaynağa bağlı personel hesabına; müşteri adı, telefon, not, ek form cevapları (plaka vb.) ve panele bağlantı. Sahibin panelden kendi girdiği randevu için e-posta gitmez.
+- **İşletmeye:** işletmenin sahip hesaplarına ve randevudaki kaynağa bağlı personel hesabına, iki durumda:
+  - müşteri sitesinden **yeni randevu** alınınca (onay bekliyorsa ayrı konu satırıyla): müşteri adı, telefon, not, ek form cevapları (plaka vb.) ve panele bağlantı;
+  - müşteri **kendi randevusunu iptal edince**: aynı bilgiler ve varsa iptal nedeni, "bu saat yeniden boş".
+  Sahibin panelden kendi girdiği ya da kendi iptal ettiği randevu için kendisine e-posta gitmez.
 - E-postası olmayan (telefonla gelen) ve `@randevu.test` demo hesaplarına e-posta gitmez.
 - Anahtar yokken bile veri yüklenir ve şablon çizilir, sonra `skipped` yazılır: bir hata varsa `email_outbox.error` sütununda görünür.
 - Kuyruktaki e-posta bayatlarsa (örn. randevu bu arada iptal edilmişse) gönderilmez. Hata durumunda üstel bekleme ile 3 kez denenir; `Idempotency-Key` ile çift e-posta olmaz.
@@ -122,7 +125,7 @@ Kuyruğa bakmak için: `select kind, to_email, status, error from email_outbox o
 ## Bilinen eksikler
 
 - Canlı e-posta gönderimi Resend anahtarı bekliyor (yukarıda). Giriş bağlantısı (magic link) ayrı bir yol: Supabase'in varsayılan e-postasıyla gider ve düşük hız sınırlıdır; sınırsız kullanım için Supabase Auth'a özel SMTP (Resend) bağlanmalıdır.
-- İşletmeye yalnızca "yeni randevu" e-postası gider; müşterinin iptal/saat değişikliği için işletmeye bildirim yok.
+- Müşteri randevu saatini değiştirince işletmeye bildirim gitmiyor (yalnızca yeni randevu ve müşteri iptali).
 - Magic link, gerçek bir e-posta adresiyle uçtan uca denenmedi; demo girişi bu yüzden var.
 - Captcha ve CSP yok.
 - KVKK sayfası bir şablondur, gerçek kullanımda hukuki gözden geçirme gerekir.

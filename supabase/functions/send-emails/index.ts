@@ -49,6 +49,7 @@ const VALID_STATUS: Record<OutboxKind, string[]> = {
   rescheduled: ["pending", "confirmed"],
   reminder: ["confirmed"],
   owner_new: ["pending", "confirmed"],
+  owner_cancelled: ["cancelled"],
 };
 
 Deno.serve(async () => {
@@ -90,7 +91,7 @@ Deno.serve(async () => {
       const { data: a } = await supabase
         .from("appointments")
         .select(
-          "id, status, starts_at, ends_at, note, field_answers, business_id, businesses(name, slug, address, city, phone, timezone), resources(name), customers(full_name, phone, email), appointment_items(name, price_cents)",
+          "id, status, starts_at, ends_at, note, cancel_reason, field_answers, business_id, businesses(name, slug, address, city, phone, timezone), resources(name), customers(full_name, phone, email), appointment_items(name, price_cents)",
         )
         .eq("id", row.appointment_id)
         .maybeSingle();
@@ -115,7 +116,7 @@ Deno.serve(async () => {
       const services = (a.appointment_items as unknown as { name: string; price_cents: number | null }[]) ?? [];
 
       let mail: BuiltEmail;
-      if (row.kind === "owner_new") {
+      if (row.kind === "owner_new" || row.kind === "owner_cancelled") {
         // Ek form cevaplarının (plaka vb.) etiketlerini işletmenin soru listesinden al
         const { data: fields } = await supabase.from("booking_fields").select("key, label").eq("business_id", a.business_id);
         const labels = new Map((fields ?? []).map((f: { key: string; label: string }) => [f.key, f.label]));
@@ -124,6 +125,8 @@ Deno.serve(async () => {
           .map(([k, v]) => ({ label: labels.get(k) ?? k, value: String(v) }));
         mail = buildOwnerEmail({
           appointmentId: a.id,
+          event: row.kind === "owner_cancelled" ? "cancelled" : "new",
+          cancelReason: a.cancel_reason,
           pending: a.status === "pending",
           business,
           customer: { name: customer?.full_name ?? "", phone: customer?.phone ?? null, email: customer?.email ?? null },

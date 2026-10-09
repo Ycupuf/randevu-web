@@ -4,7 +4,7 @@
 // Müşteriye giden e-posta türleri
 export type EmailKind = "received" | "booked" | "confirmed" | "cancelled" | "rescheduled" | "reminder";
 // Kuyruktaki tüm türler: müşteri e-postaları + işletmeye giden "yeni randevu"
-export type OutboxKind = EmailKind | "owner_new";
+export type OutboxKind = EmailKind | "owner_new" | "owner_cancelled";
 
 export type EmailContext = {
   kind: EmailKind;
@@ -165,7 +165,9 @@ ${detailHtml}
 
 export type OwnerEmailContext = {
   appointmentId: string;
-  pending: boolean; // true: işletmenin onayını bekliyor
+  event?: "new" | "cancelled"; // varsayılan: new
+  cancelReason?: string | null; // yalnızca event = "cancelled"
+  pending: boolean; // true: işletmenin onayını bekliyor (yalnızca event = "new")
   business: { name: string; slug: string };
   customer: { name: string; phone: string | null; email: string | null };
   resourceName: string;
@@ -181,13 +183,18 @@ export type OwnerEmailContext = {
 export function buildOwnerEmail(ctx: OwnerEmailContext): BuiltEmail {
   const { business, customer, timeZone } = ctx;
   const when = `${formatShortDate(ctx.startsAt, timeZone)} ${formatClock(ctx.startsAt, timeZone)}`;
-  const subject = ctx.pending
-    ? `Onayını bekleyen randevu: ${customer.name}, ${when}`
-    : `Yeni randevu: ${customer.name}, ${when}`;
-  const heading = ctx.pending ? "Onayını bekleyen yeni randevu" : "Yeni randevu geldi";
-  const intro = ctx.pending
-    ? `${business.name} için yeni bir randevu talebi var. Müşteri onayını bekliyor: panelden onaylayabilir ya da reddedebilirsin.`
-    : `${business.name} için müşteri sitesinden yeni bir randevu alındı.`;
+  const cancelled = ctx.event === "cancelled";
+  const subject = cancelled
+    ? `Randevu iptal edildi: ${customer.name}, ${when}`
+    : ctx.pending
+      ? `Onayını bekleyen randevu: ${customer.name}, ${when}`
+      : `Yeni randevu: ${customer.name}, ${when}`;
+  const heading = cancelled ? "Müşteri randevusunu iptal etti" : ctx.pending ? "Onayını bekleyen yeni randevu" : "Yeni randevu geldi";
+  const intro = cancelled
+    ? `${customer.name} ${business.name} randevusunu iptal etti. Bu saat yeniden boş.`
+    : ctx.pending
+      ? `${business.name} için yeni bir randevu talebi var. Müşteri onayını bekliyor: panelden onaylayabilir ya da reddedebilirsin.`
+      : `${business.name} için müşteri sitesinden yeni bir randevu alındı.`;
   const price = priceSummary(ctx.services);
 
   const rows: [string, string][] = [
@@ -199,6 +206,7 @@ export function buildOwnerEmail(ctx: OwnerEmailContext): BuiltEmail {
     ["Zaman", `${formatDateTime(ctx.startsAt, timeZone)} – ${formatClock(ctx.endsAt, timeZone)}`],
     ...ctx.answers.map((a) => [a.label, a.value] as [string, string]),
     ...(ctx.note ? ([["Müşteri notu", ctx.note]] as [string, string][]) : []),
+    ...(cancelled && ctx.cancelReason ? ([["İptal nedeni", ctx.cancelReason]] as [string, string][]) : []),
     ...(price ? ([["Tutar", price]] as [string, string][]) : []),
   ];
   const cta = { label: "Takvimde aç", url: `${ctx.panelUrl}/${business.slug}/takvim` };
