@@ -67,7 +67,8 @@ export function BookingWizard({ data, user, autoComplete }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [business.slug, user, autoComplete]);
 
-  const askResource = settings.resource_selection === "customer";
+  // "any" ve "customer" aynı davranır: kişi adımı gösterilir ("Fark etmez" dahil). Yalnızca "auto" adımı atlar.
+  const askResource = settings.resource_selection !== "auto";
   const steps: StepId[] = useMemo(
     () => ["services", ...(askResource ? (["resource"] as StepId[]) : []), "datetime", "details", "summary"],
     [askResource],
@@ -168,9 +169,9 @@ export function BookingWizard({ data, user, autoComplete }: Props) {
           customer: { ...s.customer, kvkkAccepted: s.kvkk },
         }),
       });
-      const json = (await res.json().catch(() => ({}))) as { id?: string; error?: string };
+      const json = (await res.json().catch(() => ({}))) as { id?: string; error?: string; code?: string };
       if (!res.ok || !json.id) {
-        if (res.status === 409 && json.error?.includes("doldu")) {
+        if (res.status === 409 && json.code === "slot_unavailable") {
           // Saat başkasına gitti: kullanıcıyı saat seçimine geri götür
           useWizard.getState().setSlot(null);
           setStep("datetime");

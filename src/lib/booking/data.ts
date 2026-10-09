@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/lib/database.types";
 import { trimSeconds } from "@/lib/format";
@@ -23,7 +24,7 @@ export type BusinessPublic = {
 };
 
 /** Herkese açık bir işletmeyi, randevu almak için gereken tüm bilgisiyle yükler. Yayında değilse null. */
-export async function getPublicBusiness(slug: string): Promise<BusinessPublic | null> {
+export const getPublicBusiness = cache(async (slug: string): Promise<BusinessPublic | null> => {
   const supabase = await createClient();
 
   const { data: row } = await supabase
@@ -75,7 +76,7 @@ export async function getPublicBusiness(slug: string): Promise<BusinessPublic | 
       end_time: trimSeconds(h.end_time),
     })),
   };
-}
+});
 
 export async function listPublicBusinesses(): Promise<Tables<"businesses">[]> {
   const supabase = await createClient();

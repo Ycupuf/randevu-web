@@ -216,3 +216,34 @@ describe("getAvailableSlotsForResources", () => {
     ]);
   });
 });
+
+describe("adım hizalaması (veritabanı assert_bookable_start ile aynı kural)", () => {
+  const hours = (startTime: string, endTime: string): WorkingWindow[] => [{ weekday: 1, startTime, endTime }];
+
+  it("pencere adıma hizalı değilse ilk slot sonraki hizalı saattir (09:30 + 60 dk adım → 10:00)", () => {
+    const result = times(base({ workingHours: hours("09:30", "13:00"), stepMin: 60, durationMin: 60 }));
+    expect(result).toEqual(["10:00", "11:00", "12:00"]);
+  });
+
+  it("09:15 başlangıç, 30 dk adım → 09:30'dan başlar", () => {
+    const result = times(base({ workingHours: hours("09:15", "11:30"), stepMin: 30, durationMin: 30 }));
+    expect(result).toEqual(["09:30", "10:00", "10:30", "11:00"]);
+  });
+
+  it("hizalı pencere değişmez", () => {
+    const result = times(base({ workingHours: hours("09:00", "11:00"), stepMin: 30, durationMin: 30 }));
+    expect(result).toEqual(["09:00", "09:30", "10:00", "10:30"]);
+  });
+
+  it("ürettiği her başlangıç günün dakikasına göre adıma tam bölünür", () => {
+    for (const [start, step] of [["09:10", 15], ["08:45", 20], ["10:05", 10], ["09:30", 60]] as const) {
+      const slots = getAvailableSlots(base({ workingHours: hours(start, "18:00"), stepMin: step, durationMin: 15 }));
+      expect(slots.length).toBeGreaterThan(0);
+      for (const s of slots) {
+        const [h, m] = formatLocalTime(s.start, TZ).split(":").map(Number);
+        expect((h * 60 + m) % step).toBe(0);
+      }
+    }
+  });
+});
+

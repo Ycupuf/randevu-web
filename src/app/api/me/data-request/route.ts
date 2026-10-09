@@ -3,7 +3,8 @@ import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import { dataRequestSchema } from "@/lib/schemas";
 
 // POST /api/me/data-request : KVKK kapsamında verilerini indirme ya da silme talebi oluşturur.
-// Talep kaydedilir; işletme/yönetici tarafından işlenir (otomatik silme yapılmaz).
+// Talep yalnızca KAYDEDİLİR (data_requests). Bu projede talepleri işleyen bir arayüz ya da otomasyon yoktur:
+// gerçek kullanımda yönetici service_role ile okuyup yanıtlamalıdır.
 export async function POST(request: NextRequest) {
   const user = await getCurrentUser();
   if (!user) {

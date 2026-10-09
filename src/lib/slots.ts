@@ -3,6 +3,7 @@ import {
   addMinutes,
   daysBetween,
   localDateString,
+  parseTimeString,
   weekdayOf,
   zonedInstant,
 } from "./time";
@@ -98,8 +99,14 @@ export function getAvailableSlots(input: SlotInput): Slot[] {
     const windowStart = zonedInstant(date, window.startTime, timeZone);
     const windowEnd = zonedInstant(date, window.endTime, timeZone);
 
+    // Başlangıçlar günün dakikasına göre `stepMin`'e hizalıdır (veritabanı `assert_bookable_start` aynı kuralı ister).
+    // Pencere 09:30'da başlayıp adım 60 ise ilk slot 10:00'dır; aksi halde sunduğumuz her saat veritabanında reddedilirdi.
+    const { h, min } = parseTimeString(window.startTime);
+    const misalignment = (h * 60 + min) % stepMin;
+    const firstStart = misalignment === 0 ? windowStart : addMinutes(windowStart, stepMin - misalignment);
+
     for (
-      let start = windowStart;
+      let start = firstStart;
       addMinutes(start, durationMin).getTime() <= windowEnd.getTime();
       start = addMinutes(start, stepMin)
     ) {

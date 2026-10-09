@@ -28,7 +28,17 @@ export function parseDateString(dateStr: string): { y: number; m: number; d: num
   return { y, m, d };
 }
 
-/** "09:30" biçimindeki saati dakikaya çevirir. Gün sonu için "24:00" kabul edilir. */
+/** Biçimi doğru VE var olan bir gün mü? ("2026-02-31" ve "2026-13-01" false döner.) */
+export function isValidDateString(dateStr: string): boolean {
+  try {
+    parseDateString(dateStr);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** "09:30" biçimindeki saati parçalar. Gün sonu için "24:00" kabul edilir. */
 export function parseTimeString(hhmm: string): { h: number; min: number } {
   const match = TIME_RE.exec(hhmm);
   if (!match) throw new RangeError(`Geçersiz saat biçimi: ${hhmm}`);

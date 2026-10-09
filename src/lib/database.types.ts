@@ -772,6 +772,10 @@ export type Database = {
         Args: { p_business_id: string }
         Returns: undefined
       }
+      replace_working_hours: {
+        Args: { p_resource_id: string; p_rows: Json }
+        Returns: undefined
+      }
       reschedule_appointment: {
         Args: { p_id: string; p_new_starts_at: string; p_resource_id?: string }
         Returns: undefined

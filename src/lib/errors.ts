@@ -39,6 +39,13 @@ const KNOWN: Record<string, ErrorInfo> = {
     message: "Bu paylaşılan bir demo işletmesi: silme kapalı. Düzenleyebilirsin; demo girişinde her şey sıfırlanır.",
     status: 403,
   },
+  demo_publish_blocked: {
+    message: "Paylaşılan demo hesabında yeni işletme yayınlanamaz. Kendi e-postanla giriş yapıp yayınlayabilirsin.",
+    status: 403,
+  },
+  slug_immutable: { message: "İşletme adresi sonradan değiştirilemez.", status: 409 },
+  invalid_timezone: { message: "Geçersiz saat dilimi.", status: 400 },
+  invalid_staff: { message: "Personel hesabı bu işletmenin üyesi olmalı.", status: 400 },
   business_limit: { message: "En fazla 5 işletme açabilirsin.", status: 409 },
 };
 

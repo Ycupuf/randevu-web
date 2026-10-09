@@ -5,7 +5,7 @@ import { buildIcs } from "@/lib/ics";
 import { formatPhoneTR } from "@/lib/format";
 
 // GET /api/appointments/:id/ics : randevuyu takvime eklemek için .ics dosyası döndürür.
-// Yalnızca randevunun sahibi (RLS) indirebilir.
+// RLS'in görmesine izin verdiği kullanıcı indirebilir: randevunun müşterisi ile işletme sahibi/ilgili personeli.
 export async function GET(_request: NextRequest, ctx: RouteContext<"/api/appointments/[id]/ics">) {
   const { id } = await ctx.params;
   if (!z.uuid().safeParse(id).success) {

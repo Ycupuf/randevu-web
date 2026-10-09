@@ -29,7 +29,7 @@ export default async function AccountPage() {
         </h2>
         <p className="mt-1 text-sm text-muted">
           KVKK kapsamında verilerinin bir kopyasını isteyebilir ya da hesabının ve verilerinin silinmesini talep
-          edebilirsin. Talebin kaydedilir ve en kısa sürede işleme alınır.
+          edebilirsin. Talebin kaydedilir. Bu bir demo projesidir: talepler henüz otomatik işlenmez, gerçek bir işletmede bir yönetici tarafından ele alınması gerekir.
         </p>
         <DataRequestButtons />
       </section>

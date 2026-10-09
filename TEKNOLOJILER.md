@@ -16,14 +16,14 @@ Bu dosya, projede hangi teknolojilerin kullanılacağını ve ilerlemeyi takip e
 | ✅ | ✅ | **React** | Arayüz bileşenleri |
 | ✅ | ✅ | **Next.js** | Sayfalar, sunucu tarafı çizim, uç noktalar |
 | ✅ | ✅ | **Tailwind CSS** | Stil, telefonda da düzgün görünsün |
-| ✅ | ✅ | **Node.js / REST** | Next.js route handler'larıyla randevu oluşturma ve listeleme |
+| ✅ | ✅ | **Node.js / REST** | Next.js route handler'larıyla boş saat sorgusu, randevu oluşturma ve değiştirme (listeleme sunucu bileşenlerinde doğrudan Supabase'ten) |
 | ✅ | ✅ | **SQL / PostgreSQL** | Hizmet, personel, randevu tabloları, çakışma sorgusu |
 | ✅ | ✅ | **Supabase Auth** | Müşteri girişi (demo girişi canlıda çalışıyor; magic link gerçek e-postayla denenmedi) |
 | ✅ | ✅ | **Supabase RLS** | Müşteri sadece kendi randevusunu görür |
 | ✅ | ✅ | **TanStack Query** | Boş saatleri ve randevuları sunucudan çekme |
 | ✅ | ✅ | **Zustand** | Randevu sihirbazının adım durumu (hizmet → personel → saat) |
 | ✅ | ✅ | **Vitest** | Çakışma kuralı, çalışma saati, hizmet süresi testleri |
-| ✅ | ✅ | **Playwright** | "Randevu al → onayla → listede gör" uçtan uca testi |
+| ✅ | ✅ | **Playwright** | Web: randevu al → değiştir → iptal et (demo girişiyle); panel: onayla, elle randevu ekle, çakışmayı reddet. Web ile panel arasında TEK bir otomatik akış testi yok (elle doğrulandı) |
 | ✅ | ✅ | **GitHub Actions** | Her PR'da test ve tip kontrolü (typecheck, lint, Vitest, build, Playwright; iki repoda yeşil) |
 | ✅ | ✅ | **Vercel** | Canlıya alma, canlı link (müşteri sitesi ve panel canlıda) |
 | ✅ | ✅ | **date-fns** | Tarih hesapları, saat dilimi (yardımcı araç) |

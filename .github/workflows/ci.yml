@@ -22,7 +22,6 @@ jobs:
       # Playwright adımları atlanır.
       NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'https://example.supabase.co' }}
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_yer_tutucu_anahtar' }}
-      NEXT_PUBLIC_SITE_URL: http://localhost:3000
       NEXT_PUBLIC_DEMO_LOGIN: ${{ vars.NEXT_PUBLIC_DEMO_LOGIN }}
     steps:
       - uses: actions/checkout@v4

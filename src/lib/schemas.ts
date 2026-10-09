@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidDateString } from "./time";
 
 /**
  * Türkiye cep telefonunu "+905XXXXXXXXX" biçimine çevirir.
@@ -15,7 +16,8 @@ export function normalizePhoneTR(input: string): string | null {
 
 export const dateOnlySchema = z
   .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "Tarih YYYY-AA-GG biçiminde olmalı");
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Tarih YYYY-AA-GG biçiminde olmalı")
+  .refine(isValidDateString, "Böyle bir gün yok");
 
 export const phoneSchema = z.string().transform((value, ctx) => {
   const normalized = normalizePhoneTR(value);

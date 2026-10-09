@@ -18,6 +18,7 @@ export const RESERVED_SLUGS = [
   "assets",
   "public",
   "proje",
+  "yeni",
 ] as const;
 
 export type SlugCheck = { ok: true; slug: string } | { ok: false; reason: string };

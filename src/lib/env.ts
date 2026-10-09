@@ -7,7 +7,6 @@ const schema = z.object({
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z
     .string()
     .min(20, "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY eksik"),
-  NEXT_PUBLIC_SITE_URL: z.url().default("http://localhost:3000"),
   // "1" ise "Demo hesabıyla devam et" düğmesi görünür (şifreler sunucuda: DEMO_CUSTOMER_EMAIL/PASSWORD).
   NEXT_PUBLIC_DEMO_LOGIN: z
     .string()
@@ -18,7 +17,6 @@ const schema = z.object({
 const parsed = schema.safeParse({
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-  NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || undefined,
   NEXT_PUBLIC_DEMO_LOGIN: process.env.NEXT_PUBLIC_DEMO_LOGIN,
 });
 

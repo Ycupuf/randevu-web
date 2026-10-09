@@ -2,6 +2,21 @@
 
 Durum: **onaylandı (13. bölümdeki 7 karar öneriler doğrultusunda kabul edildi).** Güncel tasarım bu belgedir. `DESIGN.md` ilk çekirdek taslaktı.
 
+## 0. Uygulama durumu (gerçekte olan)
+
+Bu belge **tasarım hedefidir**; aşağıdakiler henüz uygulanmadı ya da tasarımdan farklı uygulandı:
+
+| Tasarımda | Gerçekte |
+|---|---|
+| Hafta görünümü, sürükle-bırak taşıma | Yalnızca gün görünümü; taşıma diyalogla |
+| Hız sınırı ve captcha (Turnstile) | Yok. Yalnızca DB'de alıcı başına saatte 30 e-posta sınırı ve randevu başına aktif limit |
+| Doğrulanmayan randevu 15 dk'da düşer | Yok (giriş zorunlu olduğu için doğrulanmamış randevu oluşmaz) |
+| 3 gelmedide müşteri uyarısı | Yok; panelde yalnızca gelmedi sayısı ve filtre var |
+| Ayarlardan e-posta metni düzenleme | Yok; şablonlar kodda |
+| Onay e-postasına .ics eki, hatırlatmada iptal bağlantısı | Yok; e-postada randevu sayfasına bağlantı var (oradan takvime eklenir ve iptal edilir) |
+| Kaynak seçimi: müşteri / fark etmez / otomatik | İkiye indi: müşteri seçer ("fark etmez" dahil) ya da otomatik |
+| KVKK silme/dışa aktarma talebi | Talep kaydedilir; işleyen bir arayüz/otomasyon yok |
+
 ## 1. İlkeler
 
 1. **Ücretsiz ve ödemesiz.** Online ödeme, kapora yok. Fiyatlar bilgi amaçlıdır, ödeme işletmede yapılır. SMS ve WhatsApp yok (maliyet); bildirim e-posta ile.

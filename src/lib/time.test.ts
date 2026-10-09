@@ -3,6 +3,7 @@ import {
   addDays,
   daysBetween,
   formatLocalTime,
+  isValidDateString,
   localDateString,
   parseDateString,
   weekdayOf,
@@ -70,5 +71,18 @@ describe("addDays", () => {
 
   it("daysBetween ile tutarlıdır", () => {
     expect(daysBetween("2026-10-09", addDays("2026-10-09", 17))).toBe(17);
+  });
+});
+
+describe("isValidDateString", () => {
+  it("var olan günü kabul eder, var olmayan günü ve bozuk biçimi reddeder", () => {
+    expect(isValidDateString("2026-10-12")).toBe(true);
+    expect(isValidDateString("2028-02-29")).toBe(true); // artık yıl
+    expect(isValidDateString("2026-02-29")).toBe(false);
+    expect(isValidDateString("2026-02-31")).toBe(false);
+    expect(isValidDateString("2026-13-01")).toBe(false);
+    expect(isValidDateString("0000-00-00")).toBe(false);
+    expect(isValidDateString("12-10-2026")).toBe(false);
+    expect(isValidDateString("")).toBe(false);
   });
 });

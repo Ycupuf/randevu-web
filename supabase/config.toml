@@ -1,0 +1,10 @@
+# Supabase CLI yapılandırması (yalnızca bu projenin Edge Function dağıtımı için gerekenler).
+# project_id: bu projenin referansıdır (gizli değil). Başka bir Supabase projesine kurarken değiştir; ayrıca
+# supabase/migrations/20261009000011_email_outbox.sql içindeki fonksiyon adresini (https://<ref>.supabase.co/functions/v1/send-emails)
+# yeni proje adresiyle değiştir.
+project_id = "lgdqwwhivfviwozhimxa"
+
+# send-emails girdi almaz, yalnızca e-posta kuyruğunu işler; çağıranlar (veritabanı tetikleyicileri, pg_cron) JWT taşımaz.
+# Varsayılan (verify_jwt = true) bırakılırsa tüm çağrılar 401 alır ve kuyruk sessizce dolar.
+[functions.send-emails]
+verify_jwt = false

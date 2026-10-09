@@ -69,6 +69,7 @@ doğrulama yapan veritabanı fonksiyonlarından geçer (`create_appointment`, `c
 |---|---|---|
 | Birim testleri (Vitest) | `npm test` | saat hesabı, kurallar, doğrulama, `.ics`, sihirbaz durumu |
 | Uçtan uca (Playwright) | `npm run e2e` | `npx playwright install chromium` bir kez gerekir |
+| **Veritabanı testleri (SQL)** | `DATABASE_URL=... ./scripts/run-db-tests.sh` | Çakışma kısıtı, anon yetkileri, müşteri e-posta bütünlüğü, bildirimler/e-postalar, demo korumaları, personel gizliliği, atomik saat kaydı. Her test geri alınır; bkz. [`supabase/tests`](supabase/tests/README.md) |
 
 Uçtan uca testin giriş gerektiren kısmı, Supabase'te bir test kullanıcısı ister. Oluşturmak için (kendi bilgisayarında,
 `SUPABASE_SERVICE_ROLE_KEY` çok güçlü bir anahtardır: yalnızca bu komut için ver, depoya yazma):
@@ -87,11 +88,11 @@ CI'da Supabase adresi, yayınlanabilir anahtar ve `NEXT_PUBLIC_DEMO_LOGIN` depo 
 
 ## Canlıya alma (Vercel)
 
-1. Vercel'de proje ayarları > Environment Variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SITE_URL` (canlı adres). Demo girişi için `NEXT_PUBLIC_DEMO_LOGIN=1`, `DEMO_CUSTOMER_EMAIL`, `DEMO_CUSTOMER_PASSWORD` (sensitive).
+1. Vercel'de proje ayarları > Environment Variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Demo girişi için `NEXT_PUBLIC_DEMO_LOGIN=1`, `DEMO_CUSTOMER_EMAIL`, `DEMO_CUSTOMER_PASSWORD` (sensitive).
 2. Supabase panelinde Authentication > URL Configuration: **Site URL** ve **Redirect URLs** listesine canlı adresi ekle (`https://<adres>/**`). Eklenmezse giriş bağlantısı çalışmaz. Panelin adresi de aynı listeye eklenir.
 3. Giriş e-postası için Supabase'in varsayılan servisi çok düşük hız sınırlıdır ve gerçek müşterilere güvenilir ulaşmaz; canlı kullanımdan önce özel SMTP (örn. Resend) bağla.
 
-## E-posta
+## E-posta (müşteriye ve işletmeye)
 
 Altyapı hazır ve canlı veritabanında çalışıyor; **gönderim, Resend API anahtarı eklenene kadar kapalıdır** (kayıtlar `skipped` olur).
 
@@ -132,11 +133,29 @@ E-postadan bağımsız, her zaman açık: `notifications` tablosu (migration 15)
 - Bildirim satırı yalnızca olayı ve ek veriyi taşır; müşteri, hizmet, zaman bilgisi canlı okunur (bilgi hiç bayatlamaz). 90 günden eskileri her gece silinir (`pg_cron`).
 - Demo sıfırlaması sırasında üretilen örnek randevular bildirim üretmez; randevu silinince bildirimi de gider.
 
+## Güvenlik
+
+Savunma katmanları (yukarıdan aşağı): RLS satırları korur → **sütun bazlı yetkiler** hangi sütunun yazılabildiğini sınırlar
+(`businesses.slug/timezone`, `customers.email/business_id`, `resources.user_id` istemciden yazılamaz) → tetikleyiciler
+değişmezleri zorlar (hesaplı müşterinin e-postası her zaman hesap e-postasıdır, `slug` değişmez, saat dilimi geçerli olmalı)
+→ `anon` rolü yalnızca herkese açık katalog tablolarını okur (`TRUNCATE`/`TRIGGER` yetkileri hiçbir istemci rolünde yok).
+
+- **Paylaşılan demo hesapları** herkesin kullanabildiği hesaplardır; bu yüzden: demo işletmeleri silinemez ve değiştirilemez
+  alanları vardır, demo sahibi yeni işletmeyi yayınlayamaz (30 dakikada silinir), sıfırlama 20 saniyede bir çalışır,
+  demo işletmelerde **gerçek hesapla** alınan randevu ve müşteri kayıtları 24 saat sonra silinir.
+- E-posta kötüye kullanımına karşı alıcı başına saatte en fazla 30 e-posta kuyruğa girer.
+- `/auth/demo` ve `/auth/signout` yalnızca kendi sitesinden gelen isteği kabul eder (login CSRF).
+- Bağımsız iki inceleme turunda bulunan açıklar (e-posta bombalama, demo işletmesini silme, çapraz kiracı satır
+  taşıma, personelin müşteri verisi) canlıda sömürüsü kanıtlandıktan sonra kapatıldı; migration 16-19 ve `supabase/tests`.
+- `npm audit`: üretim bağımlılıklarında açık yok; yüksek bulgular yalnızca geliştirme zinciridir (lint).
+
 ## Bilinen eksikler
 
 - Canlı e-posta gönderimi Resend anahtarı bekliyor (yukarıda). Giriş bağlantısı (magic link) ayrı bir yol: Supabase'in varsayılan e-postasıyla gider ve düşük hız sınırlıdır; sınırsız kullanım için Supabase Auth'a özel SMTP (Resend) bağlanmalıdır.
 - İşletme e-postaları tek alıcı listesine gider; kişi başına bildirim tercihi (örn. yalnızca yeni randevu) yok.
 - Magic link, gerçek bir e-posta adresiyle uçtan uca denenmedi; demo girişi bu yüzden var.
-- Captcha ve CSP yok.
+- Captcha ve CSP yok. `/api/slots` ve randevu uçlarında IP başına hız sınırı yok (e-posta ve aktif randevu limitleri var).
+- Edge Function ve zamanlanmış işler proje adresine bağlıdır; başka projeye kurarken `supabase/config.toml` ve migration 11'deki adresi değiştir.
+- KVKK silme/dışa aktarma talepleri kaydedilir ama işleyen bir arayüz yoktur.
 - KVKK sayfası bir şablondur, gerçek kullanımda hukuki gözden geçirme gerekir.
 - Gizli anahtarlar (`SUPABASE_SERVICE_ROLE_KEY`) depoya girmez.

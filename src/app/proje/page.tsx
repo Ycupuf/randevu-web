@@ -41,7 +41,7 @@ const HIGHLIGHTS = [
   },
   {
     title: "Veri izolasyonu veritabanında",
-    body: "Supabase Row Level Security: müşteri yalnızca kendi randevusunu, işletme yalnızca kendi verisini görür. Başka işletmenin varlığı bile sızmaz.",
+    body: "Supabase Row Level Security: müşteri yalnızca kendi randevusunu, işletme yalnızca kendi müşterilerini ve randevularını görür; personel yalnızca kendi kaynağını ilgilendirenleri. Sütun bazlı yetkiler hassas alanların (e-posta, işletme adresi, saat dilimi) istemciden değiştirilmesini engeller.",
   },
   {
     title: "Tek model, her sektör",

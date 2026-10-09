@@ -71,8 +71,9 @@ export default function PrivacyPage() {
       <section>
         <h2 className="text-lg font-semibold">Çerezler</h2>
         <p className="mt-2">
-          Yalnızca oturumunu açık tutan zorunlu çerezleri ve randevu formundaki seçimlerini kısa süre (1 saat)
-          hatırlayan yerel depolamayı kullanıyoruz. Reklam veya izleme çerezi yok.
+          Yalnızca oturumunu açık tutan zorunlu çerezleri ve yarım kalan randevu formundaki seçimlerini tarayıcında
+          saklayan yerel depolamayı kullanıyoruz. Bu seçimler yalnızca senin cihazında durur; formu 1 saatten sonra
+          tekrar açtığında silinir. Reklam veya izleme çerezi yok.
         </p>
       </section>
     </article>
