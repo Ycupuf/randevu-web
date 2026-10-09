@@ -72,6 +72,7 @@ export type Database = {
           business_id: string
           cancel_reason: string | null
           cancelled_by: string | null
+          rescheduled_by: string | null
           created_at: string
           customer_id: string
           ends_at: string
@@ -89,6 +90,7 @@ export type Database = {
           business_id: string
           cancel_reason?: string | null
           cancelled_by?: string | null
+          rescheduled_by?: string | null
           created_at?: string
           customer_id: string
           ends_at: string
@@ -106,6 +108,7 @@ export type Database = {
           business_id?: string
           cancel_reason?: string | null
           cancelled_by?: string | null
+          rescheduled_by?: string | null
           created_at?: string
           customer_id?: string
           ends_at?: string

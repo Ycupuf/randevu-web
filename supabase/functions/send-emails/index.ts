@@ -50,6 +50,7 @@ const VALID_STATUS: Record<OutboxKind, string[]> = {
   reminder: ["confirmed"],
   owner_new: ["pending", "confirmed"],
   owner_cancelled: ["cancelled"],
+  owner_rescheduled: ["pending", "confirmed"],
 };
 
 Deno.serve(async () => {
@@ -116,7 +117,7 @@ Deno.serve(async () => {
       const services = (a.appointment_items as unknown as { name: string; price_cents: number | null }[]) ?? [];
 
       let mail: BuiltEmail;
-      if (row.kind === "owner_new" || row.kind === "owner_cancelled") {
+      if (row.kind === "owner_new" || row.kind === "owner_cancelled" || row.kind === "owner_rescheduled") {
         // Ek form cevaplarının (plaka vb.) etiketlerini işletmenin soru listesinden al
         const { data: fields } = await supabase.from("booking_fields").select("key, label").eq("business_id", a.business_id);
         const labels = new Map((fields ?? []).map((f: { key: string; label: string }) => [f.key, f.label]));
@@ -125,7 +126,8 @@ Deno.serve(async () => {
           .map(([k, v]) => ({ label: labels.get(k) ?? k, value: String(v) }));
         mail = buildOwnerEmail({
           appointmentId: a.id,
-          event: row.kind === "owner_cancelled" ? "cancelled" : "new",
+          event: row.kind === "owner_cancelled" ? "cancelled" : row.kind === "owner_rescheduled" ? "rescheduled" : "new",
+          previousStartsAt: row.payload?.previous_starts_at,
           cancelReason: a.cancel_reason,
           pending: a.status === "pending",
           business,

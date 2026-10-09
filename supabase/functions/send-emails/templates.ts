@@ -4,7 +4,7 @@
 // Müşteriye giden e-posta türleri
 export type EmailKind = "received" | "booked" | "confirmed" | "cancelled" | "rescheduled" | "reminder";
 // Kuyruktaki tüm türler: müşteri e-postaları + işletmeye giden "yeni randevu"
-export type OutboxKind = EmailKind | "owner_new" | "owner_cancelled";
+export type OutboxKind = EmailKind | "owner_new" | "owner_cancelled" | "owner_rescheduled";
 
 export type EmailContext = {
   kind: EmailKind;
@@ -165,9 +165,10 @@ ${detailHtml}
 
 export type OwnerEmailContext = {
   appointmentId: string;
-  event?: "new" | "cancelled"; // varsayılan: new
+  event?: "new" | "cancelled" | "rescheduled"; // varsayılan: new
+  previousStartsAt?: string; // yalnızca event = "rescheduled"
   cancelReason?: string | null; // yalnızca event = "cancelled"
-  pending: boolean; // true: işletmenin onayını bekliyor (yalnızca event = "new")
+  pending: boolean; // true: işletmenin onayını bekliyor (event = "new" ya da "rescheduled")
   business: { name: string; slug: string };
   customer: { name: string; phone: string | null; email: string | null };
   resourceName: string;
@@ -184,17 +185,31 @@ export function buildOwnerEmail(ctx: OwnerEmailContext): BuiltEmail {
   const { business, customer, timeZone } = ctx;
   const when = `${formatShortDate(ctx.startsAt, timeZone)} ${formatClock(ctx.startsAt, timeZone)}`;
   const cancelled = ctx.event === "cancelled";
+  const moved = ctx.event === "rescheduled";
   const subject = cancelled
     ? `Randevu iptal edildi: ${customer.name}, ${when}`
-    : ctx.pending
-      ? `Onayını bekleyen randevu: ${customer.name}, ${when}`
-      : `Yeni randevu: ${customer.name}, ${when}`;
-  const heading = cancelled ? "Müşteri randevusunu iptal etti" : ctx.pending ? "Onayını bekleyen yeni randevu" : "Yeni randevu geldi";
+    : moved
+      ? `Randevu saati değişti: ${customer.name}, ${when}`
+      : ctx.pending
+        ? `Onayını bekleyen randevu: ${customer.name}, ${when}`
+        : `Yeni randevu: ${customer.name}, ${when}`;
+  const heading = cancelled
+    ? "Müşteri randevusunu iptal etti"
+    : moved
+      ? "Müşteri randevu saatini değiştirdi"
+      : ctx.pending
+        ? "Onayını bekleyen yeni randevu"
+        : "Yeni randevu geldi";
+  const movedIntro = `${customer.name} randevusunu ${
+    ctx.previousStartsAt ? `${formatDateTime(ctx.previousStartsAt, timeZone)} yerine ` : ""
+  }aşağıdaki zamana taşıdı.${ctx.pending ? " Yeni saat senin onayını bekliyor." : ""}`;
   const intro = cancelled
     ? `${customer.name} ${business.name} randevusunu iptal etti. Bu saat yeniden boş.`
-    : ctx.pending
-      ? `${business.name} için yeni bir randevu talebi var. Müşteri onayını bekliyor: panelden onaylayabilir ya da reddedebilirsin.`
-      : `${business.name} için müşteri sitesinden yeni bir randevu alındı.`;
+    : moved
+      ? movedIntro
+      : ctx.pending
+        ? `${business.name} için yeni bir randevu talebi var. Müşteri onayını bekliyor: panelden onaylayabilir ya da reddedebilirsin.`
+        : `${business.name} için müşteri sitesinden yeni bir randevu alındı.`;
   const price = priceSummary(ctx.services);
 
   const rows: [string, string][] = [

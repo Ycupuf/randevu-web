@@ -144,4 +144,19 @@ describe("buildOwnerEmail", () => {
     expect(buildOwnerEmail({ ...owner, event: "cancelled", cancelReason: null }).text).not.toContain("İptal nedeni");
     expect(buildOwnerEmail({ ...owner, cancelReason: "Hastayım" }).text).not.toContain("İptal nedeni");
   });
+
+  it("müşteri saat değişikliğinde eski ve yeni zamanı gösterir", () => {
+    const m = buildOwnerEmail({ ...owner, event: "rescheduled", previousStartsAt: "2026-10-12T07:00:00Z" });
+    expect(m.subject).toBe("Randevu saati değişti: Ayşe Yılmaz, 13 Ekim 14:00");
+    expect(m.text).toContain("Müşteri randevu saatini değiştirdi");
+    expect(m.text).toContain("12 Ekim 2026 Pazartesi, 10:00 yerine aşağıdaki zamana taşıdı");
+    expect(m.text).toContain("Zaman: 13 Ekim 2026 Salı, 14:00");
+    expect(m.text).not.toContain("onayını bekliyor");
+  });
+
+  it("onay gerektiren işletmede saat değişikliği onay bekler notunu taşır", () => {
+    const m = buildOwnerEmail({ ...owner, event: "rescheduled", pending: true });
+    expect(m.text).toContain("Yeni saat senin onayını bekliyor.");
+    expect(m.text).toContain("aşağıdaki zamana taşıdı.");
+  });
 });
