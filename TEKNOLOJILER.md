@@ -28,8 +28,8 @@ Bu dosya, projede hangi teknolojilerin kullanılacağını ve ilerlemeyi takip e
 | ✅ | ✅ | **Vercel** | Canlıya alma, canlı link (müşteri sitesi ve panel canlıda) |
 | ✅ | ✅ | **date-fns** | Tarih hesapları, saat dilimi (yardımcı araç) |
 | ✅ | ✅ | **zod** | Form ve uç nokta girdisinin doğrulanması (yardımcı araç) |
-| ✅ | ⬜ | **E-posta gönderim servisi** (Resend) | Randevu onayı, iptal, hatırlatma e-postaları |
-| ✅ | ⬜ | **Zamanlanmış iş** (Supabase zamanlayıcı) | 24 saat önceden hatırlatma, doğrulanmamış randevuyu düşürme |
+| ✅ | ⬜ | **E-posta gönderim servisi** (Resend) | Randevu onayı, iptal, hatırlatma e-postaları (kuyruk, şablonlar ve Edge Function hazır ve test edildi; gerçek gönderim Resend anahtarı eklenince, bkz. README) |
+| ✅ | ✅ | **Zamanlanmış iş** (pg_cron + pg_net) | 24 saat önceden hatırlatma kuyruğu ve gönderici süpürmesi; doğrulanmamış randevuyu düşürme yok |
 | ✅ | ⬜ | **Captcha** (Cloudflare Turnstile) | Spam randevu koruması |
 
 ## 2. Karar bekleyenler (bu repo için)

@@ -140,8 +140,9 @@ export default function ProjectPage() {
           Bilinçli olarak yapılmayanlar
         </h2>
         <p className="mt-2 max-w-2xl text-muted">
-          Onay ve hatırlatma e-postası (özel SMTP gerekir), captcha, hafta/ay takvim görünümü, personel davet akışı ve mobil
-          uygulama kapsam dışı bırakıldı. KVKK metni bir şablondur; gerçek kullanımda hukuki gözden geçirme gerekir. Amaç satmak
+          Canlı e-posta gönderimi (onay, iptal, 24 saat hatırlatma: kuyruk, şablonlar ve zamanlanmış işler hazır, Resend
+          anahtarı ve alan adı eklenince açılır), captcha, hafta/ay takvim görünümü, personel davet akışı ve mobil uygulama
+          kapsam dışı bırakıldı. KVKK metni bir şablondur; gerçek kullanımda hukuki gözden geçirme gerekir. Amaç satmak
           değil, çalışan ve test edilmiş bir sistemi göstermektir.
         </p>
       </section>
