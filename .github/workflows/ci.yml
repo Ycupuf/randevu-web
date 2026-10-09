@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Supabase adresi ve yayınlanabilir anahtar GİZLİ DEĞİLDİR (tarayıcıya zaten gider), bu yüzden
+      # depo "Variables" ayarından okunur. Tanımlı değilse derleme yer tutucularla yapılır ve
+      # Playwright adımları atlanır.
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'https://example.supabase.co' }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_yer_tutucu_anahtar' }}
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # `typecheck` önce Next'in yol tiplerini üretir (next typegen), sonra TypeScript'i çalıştırır.
+      - name: Tip kontrolü
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Birim testleri (Vitest)
+        run: npm test
+
+      - name: Derleme
+        run: npm run build
+
+      - name: Playwright tarayıcısını kur
+        if: ${{ vars.NEXT_PUBLIC_SUPABASE_URL != '' }}
+        run: npx playwright install --with-deps chromium
+
+      # Herkese açık akışlar gerçek Supabase demo verisini okur. Giriş gerektiren test, E2E_EMAIL ve
+      # E2E_PASSWORD gizli değişkenleri tanımlıysa çalışır, değilse kendini atlar.
+      - name: Uçtan uca testler (Playwright)
+        if: ${{ vars.NEXT_PUBLIC_SUPABASE_URL != '' }}
+        run: npm run e2e
+        env:
+          CI: true
+          E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+
+      - name: Playwright raporu
+        if: ${{ failure() && vars.NEXT_PUBLIC_SUPABASE_URL != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-raporu
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
