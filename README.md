@@ -91,7 +91,7 @@ CI'da Supabase adresi, yayınlanabilir anahtar ve `NEXT_PUBLIC_DEMO_LOGIN` depo 
 2. Supabase panelinde Authentication > URL Configuration: **Site URL** ve **Redirect URLs** listesine canlı adresi ekle (`https://<adres>/**`). Eklenmezse giriş bağlantısı çalışmaz. Panelin adresi de aynı listeye eklenir.
 3. Giriş e-postası için Supabase'in varsayılan servisi çok düşük hız sınırlıdır ve gerçek müşterilere güvenilir ulaşmaz; canlı kullanımdan önce özel SMTP (örn. Resend) bağla.
 
-## E-posta (onay, iptal, saat değişikliği, 24 saat hatırlatma)
+## E-posta
 
 Altyapı hazır ve canlı veritabanında çalışıyor; **gönderim, Resend API anahtarı eklenene kadar kapalıdır** (kayıtlar `skipped` olur).
 
@@ -102,7 +102,10 @@ appointments tetikleyicisi ─► email_outbox ─► Edge Function `send-emails
 ```
 
 - Müşteri sitesi, panel ve elle girilen randevu **aynı tetikleyiciden** geçer; e-posta mantığı tek yerde.
-- E-postası olmayan (telefonla gelen) ve `@randevu.test` demo müşterilerine e-posta gitmez.
+- **Müşteriye:** talep alındı, onaylandı, iptal (işletme/müşteri ayrımıyla), saat değişti ve 24 saat hatırlatma.
+- **İşletmeye:** müşteri sitesinden yeni randevu alınınca (onay bekliyorsa ayrı konu satırıyla) işletmenin sahip hesaplarına ve randevudaki kaynağa bağlı personel hesabına; müşteri adı, telefon, not, ek form cevapları (plaka vb.) ve panele bağlantı. Sahibin panelden kendi girdiği randevu için e-posta gitmez.
+- E-postası olmayan (telefonla gelen) ve `@randevu.test` demo hesaplarına e-posta gitmez.
+- Anahtar yokken bile veri yüklenir ve şablon çizilir, sonra `skipped` yazılır: bir hata varsa `email_outbox.error` sütununda görünür.
 - Kuyruktaki e-posta bayatlarsa (örn. randevu bu arada iptal edilmişse) gönderilmez. Hata durumunda üstel bekleme ile 3 kez denenir; `Idempotency-Key` ile çift e-posta olmaz.
 - Şablonlar saf TypeScript: [`supabase/functions/send-emails/templates.ts`](supabase/functions/send-emails/templates.ts), birim testli.
 
@@ -110,7 +113,7 @@ appointments tetikleyicisi ─► email_outbox ─► Edge Function `send-emails
 
 1. [resend.com](https://resend.com)'da ücretsiz hesap aç, **API Keys** bölümünden anahtar oluştur.
 2. Supabase paneli > **Edge Functions > Secrets** bölümüne `RESEND_API_KEY` ekle (ya da `supabase secrets set RESEND_API_KEY=... --project-ref <ref>`).
-3. İsteğe bağlı: `EMAIL_FROM` (örn. `Randevu <randevu@alanadin.com>`) ve `SITE_URL`.
+3. İsteğe bağlı: `EMAIL_FROM` (örn. `Randevu <randevu@alanadin.com>`), `SITE_URL` (müşteri sitesi) ve `PANEL_URL` (işletme paneli; işletme e-postasındaki bağlantı).
 
 Alan adı doğrulanmadan Resend yalnızca **hesap sahibinin kendi e-postasına** gönderir; başka adreslere gönderim `failed` olur (neden `email_outbox.error` sütununda). Herkese gönderim için Resend'de bir alan adı doğrulayıp `EMAIL_FROM`'u onunla ayarla.
 
@@ -119,7 +122,7 @@ Kuyruğa bakmak için: `select kind, to_email, status, error from email_outbox o
 ## Bilinen eksikler
 
 - Canlı e-posta gönderimi Resend anahtarı bekliyor (yukarıda). Giriş bağlantısı (magic link) ayrı bir yol: Supabase'in varsayılan e-postasıyla gider ve düşük hız sınırlıdır; sınırsız kullanım için Supabase Auth'a özel SMTP (Resend) bağlanmalıdır.
-- İşletmeye "yeni randevu" e-postası yok (yalnızca müşteri e-postaları).
+- İşletmeye yalnızca "yeni randevu" e-postası gider; müşterinin iptal/saat değişikliği için işletmeye bildirim yok.
 - Magic link, gerçek bir e-posta adresiyle uçtan uca denenmedi; demo girişi bu yüzden var.
 - Captcha ve CSP yok.
 - KVKK sayfası bir şablondur, gerçek kullanımda hukuki gözden geçirme gerekir.

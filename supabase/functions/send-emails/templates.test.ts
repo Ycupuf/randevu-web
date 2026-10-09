@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildEmail, escapeHtml, formatDateTime, priceSummary, type EmailContext } from "./templates";
+import { buildEmail, buildOwnerEmail, escapeHtml, formatDateTime, priceSummary, type EmailContext, type OwnerEmailContext } from "./templates";
 
 const base: EmailContext = {
   kind: "booked",
@@ -79,5 +79,55 @@ describe("buildEmail", () => {
   it("fiyatsız hizmette tutar satırı yoktur", () => {
     const m = buildEmail({ ...base, services: [{ name: "Lazer", price_cents: null }] });
     expect(m.text).not.toContain("Tutar:");
+  });
+});
+
+describe("buildOwnerEmail", () => {
+  const owner: OwnerEmailContext = {
+    appointmentId: "11111111-2222-3333-4444-555555555555",
+    pending: false,
+    business: { name: "Demo Berber", slug: "demo-berber" },
+    customer: { name: "Ayşe Yılmaz", phone: "+905551234567", email: "ayse@example.com" },
+    resourceName: "Ali",
+    services: [{ name: "Saç kesimi", price_cents: 35000 }],
+    startsAt: "2026-10-13T11:00:00Z",
+    endsAt: "2026-10-13T11:30:00Z",
+    timeZone: "Europe/Istanbul",
+    note: null,
+    answers: [],
+    panelUrl: "https://panel.example",
+  };
+
+  it("konu müşteri adını ve zamanı içerir, düğme panel takvimine gider", () => {
+    const m = buildOwnerEmail(owner);
+    expect(m.subject).toBe("Yeni randevu: Ayşe Yılmaz, 13 Ekim 14:00");
+    expect(m.html).toContain("https://panel.example/demo-berber/takvim");
+    expect(m.text).toContain("Telefon: +905551234567");
+    expect(m.text).toContain("Zaman: 13 Ekim 2026 Salı, 14:00 – 14:30");
+  });
+
+  it("onay bekleyen talepte konu ve metin farklıdır", () => {
+    const m = buildOwnerEmail({ ...owner, pending: true });
+    expect(m.subject).toBe("Onayını bekleyen randevu: Ayşe Yılmaz, 13 Ekim 14:00");
+    expect(m.text).toContain("onaylayabilir ya da reddedebilirsin");
+  });
+
+  it("ek form cevaplarını ve müşteri notunu etiketleriyle gösterir", () => {
+    const m = buildOwnerEmail({ ...owner, note: "Geç kalabilirim", answers: [{ label: "Araç plakası", value: "34 ABC 123" }] });
+    expect(m.text).toContain("Araç plakası: 34 ABC 123");
+    expect(m.text).toContain("Müşteri notu: Geç kalabilirim");
+  });
+
+  it("telefon ve e-posta yoksa satır eklenmez", () => {
+    const m = buildOwnerEmail({ ...owner, customer: { name: "Ayşe", phone: null, email: null } });
+    expect(m.text).not.toContain("Telefon:");
+    expect(m.text).not.toContain("E-posta:");
+  });
+
+  it("müşterinin yazdığı HTML kaçırılır", () => {
+    const m = buildOwnerEmail({ ...owner, note: "<script>alert(1)</script>", customer: { ...owner.customer, name: "<b>X</b>" } });
+    expect(m.html).not.toContain("<script>");
+    expect(m.html).not.toContain("<b>X</b>");
+    expect(m.html).toContain("&lt;b&gt;X&lt;/b&gt;");
   });
 });

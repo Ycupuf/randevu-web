@@ -1,7 +1,10 @@
 // Randevu e-postası şablonları. Saf işlevler: ağ ve veritabanı yok, bu yüzden Vitest ile test edilir
 // (templates.test.ts). Edge Function (index.ts) yalnızca veriyi toplar ve buradan çıkan metni gönderir.
 
+// Müşteriye giden e-posta türleri
 export type EmailKind = "received" | "booked" | "confirmed" | "cancelled" | "rescheduled" | "reminder";
+// Kuyruktaki tüm türler: müşteri e-postaları + işletmeye giden "yeni randevu"
+export type OutboxKind = EmailKind | "owner_new";
 
 export type EmailContext = {
   kind: EmailKind;
@@ -153,5 +156,72 @@ ${detailHtml}
     `${cta.label}: ${cta.url}`,
   ].join("\n");
 
+  return { subject, html, text };
+}
+
+// ---------------------------------------------------------------------------
+// İşletmeye giden "yeni randevu" e-postası
+// ---------------------------------------------------------------------------
+
+export type OwnerEmailContext = {
+  appointmentId: string;
+  pending: boolean; // true: işletmenin onayını bekliyor
+  business: { name: string; slug: string };
+  customer: { name: string; phone: string | null; email: string | null };
+  resourceName: string;
+  services: { name: string; price_cents: number | null }[];
+  startsAt: string;
+  endsAt: string;
+  timeZone: string;
+  note: string | null;
+  answers: { label: string; value: string }[]; // ek form soruları (plaka vb.)
+  panelUrl: string; // sonunda / olmadan
+};
+
+export function buildOwnerEmail(ctx: OwnerEmailContext): BuiltEmail {
+  const { business, customer, timeZone } = ctx;
+  const when = `${formatShortDate(ctx.startsAt, timeZone)} ${formatClock(ctx.startsAt, timeZone)}`;
+  const subject = ctx.pending
+    ? `Onayını bekleyen randevu: ${customer.name}, ${when}`
+    : `Yeni randevu: ${customer.name}, ${when}`;
+  const heading = ctx.pending ? "Onayını bekleyen yeni randevu" : "Yeni randevu geldi";
+  const intro = ctx.pending
+    ? `${business.name} için yeni bir randevu talebi var. Müşteri onayını bekliyor: panelden onaylayabilir ya da reddedebilirsin.`
+    : `${business.name} için müşteri sitesinden yeni bir randevu alındı.`;
+  const price = priceSummary(ctx.services);
+
+  const rows: [string, string][] = [
+    ["Müşteri", customer.name],
+    ...(customer.phone ? ([["Telefon", customer.phone]] as [string, string][]) : []),
+    ...(customer.email ? ([["E-posta", customer.email]] as [string, string][]) : []),
+    ["Hizmet", ctx.services.map((s) => s.name).join(", ")],
+    ["Kiminle", ctx.resourceName],
+    ["Zaman", `${formatDateTime(ctx.startsAt, timeZone)} – ${formatClock(ctx.endsAt, timeZone)}`],
+    ...ctx.answers.map((a) => [a.label, a.value] as [string, string]),
+    ...(ctx.note ? ([["Müşteri notu", ctx.note]] as [string, string][]) : []),
+    ...(price ? ([["Tutar", price]] as [string, string][]) : []),
+  ];
+  const cta = { label: "Takvimde aç", url: `${ctx.panelUrl}/${business.slug}/takvim` };
+
+  const table = `<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;margin:16px 0">${rows
+    .map(
+      ([k, v]) =>
+        `<tr><td style="padding:6px 12px 6px 0;color:#57534e;vertical-align:top;white-space:nowrap">${escapeHtml(k)}</td><td style="padding:6px 0;font-weight:600">${escapeHtml(v)}</td></tr>`,
+    )
+    .join("")}</table>`;
+
+  const html = `<!doctype html>
+<html lang="tr"><body style="margin:0;background:#fafaf9;font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#1c1917">
+<div style="max-width:520px;margin:0 auto;padding:24px 16px">
+<div style="background:#ffffff;border:1px solid #d6d3d1;border-radius:12px;padding:24px">
+<h1 style="margin:0 0 12px;font-size:20px">${escapeHtml(heading)}</h1>
+<p style="margin:0">${escapeHtml(intro)}</p>
+${table}
+<p style="margin:20px 0 0"><a href="${escapeHtml(cta.url)}" style="display:inline-block;background:#0f766e;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:600">${escapeHtml(cta.label)}</a></p>
+</div>
+<p style="margin:16px 4px 0;font-size:12px;color:#57534e">Bu e-postayı ${escapeHtml(business.name)} işletmesinin yöneticisi olduğun için aldın. Müşteri bilgilerini yalnızca randevu için kullan.</p>
+</div></body></html>`;
+
+  const text = [heading, "", intro, "", ...rows.map(([k, v]) => `${k}: ${v}`), "", `${cta.label}: ${cta.url}`].join("\n");
   return { subject, html, text };
 }
