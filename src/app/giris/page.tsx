@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { DemoLoginForm } from "@/components/DemoLoginForm";
 import { LoginForm } from "@/components/LoginForm";
 import { safeNext } from "@/lib/redirect";
 import { getCurrentUser } from "@/lib/supabase/server";
@@ -22,7 +23,15 @@ export default async function LoginPage({ searchParams }: PageProps<"/giris">) {
           Giriş bağlantısı geçersiz ya da süresi dolmuş. Yeni bir bağlantı iste.
         </p>
       )}
+      {query.hata === "demo" && (
+        <p role="alert" className="mt-4 rounded-lg bg-danger-soft p-3 text-sm text-danger">
+          Demo girişi şu an kullanılamıyor. E-posta ile giriş yapmayı dene.
+        </p>
+      )}
       <LoginForm next={next} />
+      <div className="mt-6">
+        <DemoLoginForm next={next} />
+      </div>
     </div>
   );
 }

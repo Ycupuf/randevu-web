@@ -671,6 +671,8 @@ export type Database = {
         Args: { p_id: string; p_new_starts_at: string; p_resource_id?: string }
         Returns: undefined
       }
+      reset_demo_customer: { Args: never; Returns: number }
+      reset_demo_owner: { Args: never; Returns: number }
       set_appointment_status: {
         Args: {
           p_id: string

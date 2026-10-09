@@ -10,6 +10,7 @@ import { summarizeServices } from "@/lib/rules";
 import { customerSchema, fieldErrors, stringifyItemsParam } from "@/lib/schemas";
 import { createClient } from "@/lib/supabase/browser";
 import { localDateString } from "@/lib/time";
+import { DemoLoginForm } from "./DemoLoginForm";
 import { SlotPicker } from "./SlotPicker";
 
 type StepId = "services" | "resource" | "datetime" | "details" | "summary";
@@ -513,14 +514,17 @@ export function BookingWizard({ data, user, autoComplete }: Props) {
               </button>
             </div>
           ) : (
-            <button
-              type="button"
-              className="btn btn-primary"
-              disabled={submitting}
-              onClick={user ? submit : sendLoginLink}
-            >
-              {submitting ? "Bekle…" : user ? "Randevuyu onayla" : "E-postamla devam et"}
-            </button>
+            <>
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={submitting}
+                onClick={user ? submit : sendLoginLink}
+              >
+                {submitting ? "Bekle…" : user ? "Randevuyu onayla" : "E-postamla devam et"}
+              </button>
+              {!user && <DemoLoginForm next={`/${business.slug}/randevu?tamamla=1`} />}
+            </>
           )}
         </div>
       )}

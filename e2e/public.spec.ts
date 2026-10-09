@@ -126,3 +126,38 @@ test.describe("randevu sihirbazı (girişsiz, özete kadar)", () => {
     await expect(page.getByRole("button", { name: /Boya/ })).toHaveAttribute("aria-pressed", "true");
   });
 });
+
+test.describe("demo girişi (e-postasız)", () => {
+  test.skip(process.env.NEXT_PUBLIC_DEMO_LOGIN !== "1", "NEXT_PUBLIC_DEMO_LOGIN=1 değil, demo girişi kapalı");
+
+  test("demo hesabıyla devam edince randevu e-posta olmadan alınır ve iptal edilir", async ({ page }) => {
+    await page.goto("/demo-berber/randevu");
+    await page.getByRole("button", { name: /Saç kesimi/ }).click();
+    await page.getByRole("button", { name: "Devam" }).click();
+    await page.getByRole("button", { name: "Burak" }).click();
+    await page.getByRole("button", { name: "Devam" }).click();
+    await pickDayAndSlot(page, "last");
+    await page.getByRole("button", { name: "Devam" }).click();
+    await page.getByLabel("Ad soyad").fill("Demo Ziyaretçi");
+    await page.getByLabel("Cep telefonu").fill("0532 000 11 22");
+    await page.getByLabel("E-posta", { exact: true }).fill("ziyaretci@ornek.com");
+    await page.getByRole("checkbox").check();
+    await page.getByRole("button", { name: "Devam" }).click();
+
+    await expect(page.getByRole("button", { name: "Demo hesabıyla devam et" })).toBeVisible();
+    await page.getByRole("button", { name: "Demo hesabıyla devam et" }).click();
+
+    // Giriş bağlantısından dönüşteki gibi: kayıtlı seçimlerle randevu otomatik tamamlanır
+    await expect(page).toHaveURL(/\/randevu\/[0-9a-f-]{36}\?yeni=1/, { timeout: 15_000 });
+    await expect(page.getByText("Randevun alındı.")).toBeVisible();
+
+    await page.getByRole("button", { name: "Randevuyu iptal et" }).click();
+    await page.getByRole("button", { name: "Evet, iptal et" }).click();
+    await expect(page.getByText("Sen iptal ettin")).toBeVisible();
+  });
+
+  test("giriş sayfasında demo düğmesi görünür", async ({ page }) => {
+    await page.goto("/giris");
+    await expect(page.getByRole("button", { name: "Demo hesabıyla devam et" })).toBeVisible();
+  });
+});
