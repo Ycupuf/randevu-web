@@ -757,6 +757,10 @@ export type Database = {
         }
         Returns: string
       }
+      create_walkin_customer: {
+        Args: { p_business_id: string; p_full_name: string; p_phone?: string }
+        Returns: string
+      }
       create_business: {
         Args: {
           p_address?: string

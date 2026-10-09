@@ -261,12 +261,12 @@ select cron.schedule(
   $cron$
     delete from public.appointments a
      using public.customers c, public.businesses b
-     where a.customer_id = c.id and b.id = a.business_id and b.slug like 'demo-%'
+     where a.customer_id = c.id and b.id = a.business_id and b.slug in ('demo-berber', 'demo-guzellik', 'demo-oto-yikama')
        and c.user_id is not null and coalesce(c.email, '') not like '%@randevu.test'
        and a.created_at < now() - interval '24 hours';
     delete from public.customers c
      using public.businesses b
-     where b.id = c.business_id and b.slug like 'demo-%'
+     where b.id = c.business_id and b.slug in ('demo-berber', 'demo-guzellik', 'demo-oto-yikama')
        and c.user_id is not null and coalesce(c.email, '') not like '%@randevu.test'
        and c.created_at < now() - interval '24 hours'
        and not exists (select 1 from public.appointments a where a.customer_id = c.id)

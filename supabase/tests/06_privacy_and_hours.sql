@@ -7,7 +7,7 @@ begin
   select id into v_ou from auth.users where email = 'demo-isletme@randevu.test';
   select id into v_cu from auth.users where email = 'demo-musteri@randevu.test';
   select id into v_su from auth.users where id not in (v_ou, v_cu) order by created_at limit 1;
-  if v_su is null then raise exception 'TEST_OK: ATLANDI (3. kullanıcı yok)'; end if;
+  if v_su is null then raise exception 'TEST_SKIPPED: 3. auth kullanıcısı yok (personel hesabı gerekir)'; end if;
   select id into v_biz from public.businesses where slug = 'demo-berber';
   select id into v_other from public.businesses where slug = 'demo-oto-yikama';
   select id into v_ali from public.resources where business_id = v_biz and name = 'Ali';

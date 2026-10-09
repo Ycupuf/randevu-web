@@ -12,7 +12,7 @@ begin
   select id into v_cu from auth.users where email = 'demo-musteri@randevu.test';
   select id into v_ou from auth.users where email = 'demo-isletme@randevu.test';
   select id into v_su from auth.users where id not in (v_cu, v_ou) order by created_at limit 1;
-  if v_su is null then raise exception 'TEST_OK: ATLANDI (3. kullanıcı yok)'; end if;
+  if v_su is null then raise exception 'TEST_SKIPPED: 3. auth kullanıcısı yok (personel hesabı gerekir)'; end if;
 
   update auth.users set email = 'sahip-test@example.com' where id = v_ou;
   update auth.users set email = 'staff-test@example.com' where id = v_su;
