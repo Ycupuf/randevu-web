@@ -13,6 +13,16 @@ test.describe("herkese açık sayfalar", () => {
     await expect(page.getByRole("link", { name: /Demo Oto Yıkama/ })).toBeVisible();
   });
 
+  test("proje tanıtım sayfası denemek için bağlantıları gösterir", async ({ page }) => {
+    await page.goto("/proje");
+    await expect(page.getByRole("heading", { level: 1, name: "Randevu" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Demo Berber'de randevu al" })).toHaveAttribute("href", "/demo-berber/randevu");
+    await expect(page.getByRole("link", { name: /Paneli aç/ })).toHaveAttribute("href", /^https:\/\//);
+    await page.goto("/");
+    await page.getByRole("link", { name: "Proje hakkında" }).first().click();
+    await expect(page).toHaveURL(/\/proje$/);
+  });
+
   test("işletme sayfası hizmetleri, saatleri ve randevu düğmesini gösterir", async ({ page }) => {
     await page.goto("/demo-berber");
     await expect(page.getByRole("heading", { level: 1, name: "Demo Berber" })).toBeVisible();

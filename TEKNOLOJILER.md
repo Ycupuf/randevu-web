@@ -10,7 +10,7 @@ Bu dosya, projede hangi teknolojilerin kullanılacağını ve ilerlemeyi takip e
 
 | Kullanılacak | Yapıldı | Teknoloji | Projedeki görevi |
 |:-:|:-:|---|---|
-| ✅ | ⬜ | **Git / GitHub** | Tüm geçmiş, dallar, PR'lar, profil vitrini |
+| ✅ | ✅ | **Git / GitHub** | Tüm geçmiş, dallar, PR'lar, profil vitrini |
 | ✅ | ⬜ | **JavaScript** (tamamlama) | Dilin temeli: dizi metotları, destructuring, modüller |
 | ✅ | ✅ | **TypeScript** | Tüm kod; randevu ve hizmet modelleri |
 | ✅ | ✅ | **React** | Arayüz bileşenleri |
@@ -18,14 +18,14 @@ Bu dosya, projede hangi teknolojilerin kullanılacağını ve ilerlemeyi takip e
 | ✅ | ✅ | **Tailwind CSS** | Stil, telefonda da düzgün görünsün |
 | ✅ | ✅ | **Node.js / REST** | Next.js route handler'larıyla randevu oluşturma ve listeleme |
 | ✅ | ✅ | **SQL / PostgreSQL** | Hizmet, personel, randevu tabloları, çakışma sorgusu |
-| ✅ | ⬜ | **Supabase Auth** | Müşteri girişi |
+| ✅ | ✅ | **Supabase Auth** | Müşteri girişi (demo girişi canlıda çalışıyor; magic link gerçek e-postayla denenmedi) |
 | ✅ | ✅ | **Supabase RLS** | Müşteri sadece kendi randevusunu görür |
 | ✅ | ✅ | **TanStack Query** | Boş saatleri ve randevuları sunucudan çekme |
 | ✅ | ✅ | **Zustand** | Randevu sihirbazının adım durumu (hizmet → personel → saat) |
 | ✅ | ✅ | **Vitest** | Çakışma kuralı, çalışma saati, hizmet süresi testleri |
 | ✅ | ✅ | **Playwright** | "Randevu al → onayla → listede gör" uçtan uca testi |
-| ✅ | ⬜ | **GitHub Actions** | Her PR'da test ve tip kontrolü |
-| ✅ | ⬜ | **Vercel** | Canlıya alma, canlı link |
+| ✅ | ✅ | **GitHub Actions** | Her PR'da test ve tip kontrolü (typecheck, lint, Vitest, build, Playwright; iki repoda yeşil) |
+| ✅ | ✅ | **Vercel** | Canlıya alma, canlı link (müşteri sitesi ve panel canlıda) |
 | ✅ | ✅ | **date-fns** | Tarih hesapları, saat dilimi (yardımcı araç) |
 | ✅ | ✅ | **zod** | Form ve uç nokta girdisinin doğrulanması (yardımcı araç) |
 | ✅ | ⬜ | **E-posta gönderim servisi** (Resend) | Randevu onayı, iptal, hatırlatma e-postaları |
@@ -42,7 +42,7 @@ Bu dosya, projede hangi teknolojilerin kullanılacağını ve ilerlemeyi takip e
 |:-:|:-:|---|---|
 | ➖ | ⬜ | **React Native (Expo)** | Saha mobil (personel uygulaması) |
 | ➖ | ⬜ | **Docker** | Hatırlatma ve rapor servisi, en sona |
-| ➖ | ⬜ | **Grafik kütüphanesi** | KPI paneli |
+| ➖ | ✅ | **Grafik** | Panelde rapor SVG/CSS ile çizildi, kütüphane gerekmedi |
 
 ## 4. Kullanılmayacaklar (bilinçli karar)
 

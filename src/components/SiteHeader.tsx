@@ -36,9 +36,14 @@ export function SiteFooter() {
     <footer className="mt-auto border-t border-border">
       <div className="mx-auto flex w-full max-w-4xl flex-wrap items-center justify-between gap-2 px-4 py-6 text-sm text-muted">
         <p>Ücretsiz randevu sistemi. Ödeme yok, fiyatlar bilgi amaçlıdır.</p>
-        <Link href="/gizlilik" className="underline underline-offset-2 hover:text-foreground">
-          Gizlilik ve KVKK
-        </Link>
+        <nav aria-label="Alt bağlantılar" className="flex gap-4">
+          <Link href="/proje" className="underline underline-offset-2 hover:text-foreground">
+            Proje hakkında
+          </Link>
+          <Link href="/gizlilik" className="underline underline-offset-2 hover:text-foreground">
+            Gizlilik ve KVKK
+          </Link>
+        </nav>
       </div>
     </footer>
   );

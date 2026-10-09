@@ -1,9 +1,26 @@
 # Randevu
 
 Küçük işletmeler için **ücretsiz, çok sektörlü online randevu sistemi**: kuaför, güzellik merkezi, oto yıkama ve benzeri.
-Bu repo **müşteri web uygulaması** (randevu alma, değiştirme, iptal). İşletme sahibinin paneli ayrı repoda (`randevu-panel`), ikisi aynı Supabase veritabanını kullanır.
+Bu repo **müşteri web uygulaması** (randevu alma, değiştirme, iptal). İşletme sahibinin paneli ayrı repoda:
+**[randevu-panel](https://github.com/Ycupuf/randevu-panel)**. İkisi aynı Supabase veritabanını kullanır.
 
-> Durum: müşteri tarafı çalışıyor (randevu alma, değiştirme, iptal, takvime ekleme; kuaför, güzellik ve oto yıkama demo işletmeleriyle). İşletme paneli ayrı repoda yapılacak. Canlı yayın için gerekenler aşağıda.
+| | Canlı | Kod |
+|---|---|---|
+| **Müşteri sitesi** | https://randevu-web-delta.vercel.app | bu repo |
+| **İşletme paneli** | https://randevu-panel-psi.vercel.app | [randevu-panel](https://github.com/Ycupuf/randevu-panel) |
+| **Tanıtım sayfası** | https://randevu-web-delta.vercel.app/proje | `src/app/proje` |
+
+## 2 dakikada dene
+
+1. [Demo Berber'de randevu al](https://randevu-web-delta.vercel.app/demo-berber/randevu): hizmet, personel, gün ve saat seç. Son adımda **"Demo hesabıyla devam et"** e-posta istemeden seni içeri alır.
+2. [İşletme paneline](https://randevu-panel-psi.vercel.app) **"Demo hesabıyla devam et"** ile gir: aldığın randevu takvimde görünür.
+3. Panelde randevuyu **onayla** ya da saatini değiştir; müşteri sitesinde **Randevularım** sayfasında durumun güncellendiğini gör.
+
+Demo hesapları herkesle paylaşılır. İşletme sahibi demosu her girişte örnek verilerle sıfırlanır (yayın durumu, saatler, hizmetler dahil;
+hesaplı müşterilerin randevusuna dokunmaz). Müşteri demosunda yalnızca demo müşterinin randevuları sıfırlanır.
+Demo işletmeleri (`demo-berber`, `demo-guzellik`, `demo-oto-yikama`) silinemez. Gerçek bir e-postayla (magic link) giriş de çalışır.
+
+> Durum: müşteri tarafı ve panel canlıda çalışıyor. Bilinen eksikler en altta.
 
 ## Neden var
 
@@ -62,15 +79,22 @@ NEXT_PUBLIC_SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... E2E_EMAIL=e2e@ornek.t
 ```
 
 Sonra `.env.local` dosyasına `E2E_EMAIL` ve `E2E_PASSWORD` ekle. Tanımlı değilse bu testler kendini atlar.
-CI'da aynı değişkenler GitHub'da depo "Secrets" olarak, Supabase adresi ve yayınlanabilir anahtar "Variables" olarak girilir.
+
+Demo girişi (`/auth/demo`) için `.env.local` içine `NEXT_PUBLIC_DEMO_LOGIN=1`, `DEMO_CUSTOMER_EMAIL` ve `DEMO_CUSTOMER_PASSWORD`
+yaz. Şifre yalnızca sunucuda okunur, tarayıcıya gitmez ve depoda yoktur. Demo hesaplarını `scripts/create-demo-users.mjs` oluşturur
+(`SUPABASE_SERVICE_ROLE_KEY` yalnızca bu komut için, kendi bilgisayarında verilir).
+CI'da Supabase adresi, yayınlanabilir anahtar ve `NEXT_PUBLIC_DEMO_LOGIN` depo "Variables", demo hesabı bilgileri (`DEMO_CUSTOMER_*`) ve varsa `E2E_*` "Secrets" olarak girilir.
 
 ## Canlıya alma (Vercel)
 
-1. Vercel'de proje ayarları > Environment Variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SITE_URL` (canlı adres).
-2. Supabase panelinde Authentication > URL Configuration: **Site URL** ve **Redirect URLs** listesine canlı adresi ekle (`https://<adres>/**`). Eklenmezse giriş bağlantısı çalışmaz.
+1. Vercel'de proje ayarları > Environment Variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SITE_URL` (canlı adres). Demo girişi için `NEXT_PUBLIC_DEMO_LOGIN=1`, `DEMO_CUSTOMER_EMAIL`, `DEMO_CUSTOMER_PASSWORD` (sensitive).
+2. Supabase panelinde Authentication > URL Configuration: **Site URL** ve **Redirect URLs** listesine canlı adresi ekle (`https://<adres>/**`). Eklenmezse giriş bağlantısı çalışmaz. Panelin adresi de aynı listeye eklenir.
 3. Giriş e-postası için Supabase'in varsayılan servisi çok düşük hız sınırlıdır ve gerçek müşterilere güvenilir ulaşmaz; canlı kullanımdan önce özel SMTP (örn. Resend) bağla.
 
-## Notlar
+## Bilinen eksikler
 
-- E-posta: giriş bağlantısı Supabase'in varsayılan e-postasıyla gider (düşük hız sınırı). Gerçek müşteri e-postası ve hatırlatma için özel SMTP (örn. Resend) gerekir; henüz yok.
+- Onay ve hatırlatma e-postası yok; giriş bağlantısı Supabase'in varsayılan e-postasıyla gider (düşük hız sınırı). Gerçek kullanım için özel SMTP (örn. Resend) gerekir.
+- Magic link, gerçek bir e-posta adresiyle uçtan uca denenmedi; demo girişi bu yüzden var.
+- Captcha ve CSP yok.
+- KVKK sayfası bir şablondur, gerçek kullanımda hukuki gözden geçirme gerekir.
 - Gizli anahtarlar (`SUPABASE_SERVICE_ROLE_KEY`) depoya girmez.

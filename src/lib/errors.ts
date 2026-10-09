@@ -35,6 +35,10 @@ const KNOWN: Record<string, ErrorInfo> = {
   invalid_transition: { message: "Randevunun durumu bu şekilde değiştirilemez.", status: 409 },
   too_early: { message: "Randevu zamanı gelmeden bu durum işaretlenemez.", status: 409 },
   slug_taken: { message: "Bu bağlantı adı alınmış. Başka bir ad dene.", status: 409 },
+  demo_protected: {
+    message: "Bu paylaşılan bir demo işletmesi: silme kapalı. Düzenleyebilirsin; demo girişinde her şey sıfırlanır.",
+    status: 403,
+  },
   business_limit: { message: "En fazla 5 işletme açabilirsin.", status: 409 },
 };
 

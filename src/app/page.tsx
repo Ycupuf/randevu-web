@@ -40,7 +40,15 @@ export default async function Home() {
       <section className="card">
         <h2 className="text-lg font-semibold">İşletme sahibi misin?</h2>
         <p className="mt-1 text-muted">
-          İşletmeni ücretsiz ekle, müşterilerin kendi başına randevu alsın. İşletme paneli yakında burada olacak.
+          İşletmeni ücretsiz ekle, müşterilerin kendi başına randevu alsın. Takvim, müşteriler, hizmetler ve rapor işletme panelinde.
+        </p>
+        <p className="mt-3 flex flex-wrap gap-2">
+          <a className="btn btn-primary" href={process.env.NEXT_PUBLIC_PANEL_URL ?? "https://randevu-panel-psi.vercel.app"}>
+            İşletme paneline git
+          </a>
+          <Link className="btn" href="/proje">
+            Proje hakkında
+          </Link>
         </p>
       </section>
     </div>
