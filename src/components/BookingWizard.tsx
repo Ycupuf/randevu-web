@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { BusinessPublic, ServiceWithVariants } from "@/lib/booking/data";
 import { MAX_ITEMS, useWizard } from "@/lib/booking/store";
+import { requestLoginLink, submitAppointment } from "@/lib/booking/submit";
 import { formatDateOnlyLong, formatDuration, formatPrice, formatTime, formatPhoneTR } from "@/lib/format";
 import { summarizeServices } from "@/lib/rules";
 import { customerSchema, fieldErrors, stringifyItemsParam } from "@/lib/schemas";
@@ -150,67 +151,33 @@ export function BookingWizard({ data, user, autoComplete }: Props) {
 
   async function submit() {
     const s = useWizard.getState();
-    if (!s.slot) return;
     setSubmitting(true);
     setSubmitError(null);
-    try {
-      const answers: Record<string, string> = {};
-      for (const f of fields) if (s.fieldAnswers[f.key]?.trim()) answers[f.key] = s.fieldAnswers[f.key]!.trim();
-      const res = await fetch("/api/appointments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          businessId: business.id,
-          items: s.items,
-          resourceId: s.resourceId,
-          startsAt: s.slot.start,
-          fieldAnswers: answers,
-          note: s.note || undefined,
-          customer: { ...s.customer, kvkkAccepted: s.kvkk },
-        }),
-      });
-      const json = (await res.json().catch(() => ({}))) as { id?: string; error?: string; code?: string };
-      if (!res.ok || !json.id) {
-        if (res.status === 409 && json.code === "slot_unavailable") {
-          // Saat başkasına gitti: kullanıcıyı saat seçimine geri götür
-          useWizard.getState().setSlot(null);
-          setStep("datetime");
-        }
-        setSubmitError(json.error ?? "Randevu alınamadı. Tekrar dene.");
-        return;
-      }
+    const result = await submitAppointment({ businessId: business.id, wizard: s, fields });
+    setSubmitting(false);
+    if (result.ok) {
       useWizard.getState().reset();
-      router.push(`/randevu/${json.id}?yeni=1`);
-    } catch {
-      setSubmitError("Bağlantı sorunu. İnternetini kontrol edip tekrar dene.");
-    } finally {
-      setSubmitting(false);
+      router.push(`/randevu/${result.id}?yeni=1`);
+      return;
     }
+    if (result.slotTaken) {
+      // Saat başkasına gitti: kullanıcıyı saat seçimine geri götür
+      useWizard.getState().setSlot(null);
+      setStep("datetime");
+    }
+    setSubmitError(result.error);
   }
 
   async function sendLoginLink() {
-    const s = useWizard.getState();
     setSubmitting(true);
     setSubmitError(null);
-    try {
-      const supabase = createClient();
-      const next = `/${business.slug}/randevu?tamamla=1`;
-      const { error } = await supabase.auth.signInWithOtp({
-        email: s.customer.email.trim().toLowerCase(),
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
-      });
-      if (error) {
-        setSubmitError(
-          error.status === 429
-            ? "Kısa sürede çok fazla e-posta istendi. Birkaç dakika sonra tekrar dene."
-            : "Giriş bağlantısı gönderilemedi. E-posta adresini kontrol edip tekrar dene.",
-        );
-        return;
-      }
-      setLinkSent(true);
-    } finally {
-      setSubmitting(false);
-    }
+    const result = await requestLoginLink(
+      { email: useWizard.getState().customer.email, slug: business.slug, origin: window.location.origin },
+      createClient(),
+    );
+    setSubmitting(false);
+    if (result.ok) setLinkSent(true);
+    else setSubmitError(result.error);
   }
 
   // ---------------------------------------------------------------- görünüm
