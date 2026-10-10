@@ -140,9 +140,9 @@ export default function ProjectPage() {
           Bilinçli olarak yapılmayanlar
         </h2>
         <p className="mt-2 max-w-2xl text-muted">
-          Canlı e-posta gönderimi (onay, iptal, 24 saat hatırlatma: kuyruk, şablonlar ve zamanlanmış işler hazır, Resend
-          anahtarı ve alan adı eklenince açılır), captcha, hafta/ay takvim görünümü, personel davet akışı ve mobil uygulama
-          kapsam dışı bırakıldı. KVKK metni bir şablondur; gerçek kullanımda hukuki gözden geçirme gerekir. Amaç satmak
+          E-posta hattı canlı ve test edildi (onay, iptal, saat değişikliği, 24 saat hatırlatma), ama bir alan adı
+          doğrulanmadığı için Resend yalnızca hesap sahibinin adresine gönderir; herkese gönderim alan adı ister. Captcha,
+          hafta/ay takvim görünümü, personel davet akışı ve mobil uygulama kapsam dışı bırakıldı. KVKK metni bir şablondur; gerçek kullanımda hukuki gözden geçirme gerekir. Amaç satmak
           değil, çalışan ve test edilmiş bir sistemi göstermektir.
         </p>
       </section>

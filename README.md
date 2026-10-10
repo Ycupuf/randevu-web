@@ -94,7 +94,7 @@ CI'da Supabase adresi, yayınlanabilir anahtar ve `NEXT_PUBLIC_DEMO_LOGIN` depo 
 
 ## E-posta (müşteriye ve işletmeye)
 
-Altyapı hazır ve canlı veritabanında çalışıyor; **gönderim, Resend API anahtarı eklenene kadar kapalıdır** (kayıtlar `skipped` olur).
+Altyapı canlı veritabanında çalışıyor ve Resend ile gönderim **açık**. Alan adı doğrulanmadığı için Resend yalnızca hesap sahibinin kendi adresine gönderir (aşağıda); diğer alıcılar için kayıt `failed / resend_403` olur. Anahtar yoksa kayıtlar `skipped` olur.
 
 ```
 appointments tetikleyicisi ─► email_outbox ─► Edge Function `send-emails` ─► Resend
@@ -151,7 +151,7 @@ değişmezleri zorlar (hesaplı müşterinin e-postası her zaman hesap e-postas
 
 ## Bilinen eksikler
 
-- Canlı e-posta gönderimi Resend anahtarı bekliyor (yukarıda). Giriş bağlantısı (magic link) ayrı bir yol: Supabase'in varsayılan e-postasıyla gider ve düşük hız sınırlıdır; sınırsız kullanım için Supabase Auth'a özel SMTP (Resend) bağlanmalıdır.
+- E-posta gönderimi canlı ama alan adı doğrulanmadığı için yalnızca Resend hesabının sahibine gider; gerçek müşterilere gitmesi için alan adı gerekir (yukarıda). Giriş bağlantısı (magic link) ayrı bir yol: Supabase'in varsayılan e-postasıyla gider ve düşük hız sınırlıdır; sınırsız kullanım için Supabase Auth'a özel SMTP (Resend) bağlanmalıdır.
 - İşletme e-postaları tek alıcı listesine gider; kişi başına bildirim tercihi (örn. yalnızca yeni randevu) yok.
 - Magic link, gerçek bir e-posta adresiyle uçtan uca denenmedi; demo girişi bu yüzden var.
 - Captcha ve CSP yok. `/api/slots` ve randevu uçlarında IP başına hız sınırı yok (e-posta ve aktif randevu limitleri var).
