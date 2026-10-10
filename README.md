@@ -118,7 +118,7 @@ appointments tetikleyicisi ─► email_outbox ─► Edge Function `send-emails
 
 1. [resend.com](https://resend.com)'da ücretsiz hesap aç, **API Keys** bölümünden anahtar oluştur.
 2. Supabase paneli > **Edge Functions > Secrets** bölümüne `RESEND_API_KEY` ekle (ya da `supabase secrets set RESEND_API_KEY=... --project-ref <ref>`).
-3. İsteğe bağlı: `EMAIL_FROM` (örn. `Randevu <randevu@alanadin.com>`), `SITE_URL` (müşteri sitesi) ve `PANEL_URL` (işletme paneli; işletme e-postasındaki bağlantı).
+3. `SITE_URL` (müşteri sitesi) ve `PANEL_URL` (işletme paneli) ZORUNLUDUR: yoksa e-postalar `skipped` olur, yanlış adrese bağlantı gitmez. İsteğe bağlı: `EMAIL_FROM` (örn. `Randevu <randevu@alanadin.com>`).
 
 Alan adı doğrulanmadan Resend yalnızca **hesap sahibinin kendi e-postasına** gönderir; başka adreslere gönderim `failed` olur (neden `email_outbox.error` sütununda). Herkese gönderim için Resend'de bir alan adı doğrulayıp `EMAIL_FROM`'u onunla ayarla.
 

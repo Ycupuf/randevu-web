@@ -11,6 +11,8 @@ begin
   insert into public.businesses (slug, name, sector) values ('demo-salon-test', 'Gerçek Salon', 'berber') returning id into v_real;
   insert into public.resources (business_id, name, kind) values (v_real, 'R1', 'person') returning id into v_real_res;
 
+  -- Temiz başlangıç: demo müşterinin canlı randevuları FK nedeniyle önce gitmeli (işlem geri alınır)
+  delete from public.appointments where customer_id in (select id from public.customers where user_id = v_cu and business_id in (v_biz, v_real));
   delete from public.customers where user_id = v_cu and business_id in (v_biz, v_real);
   insert into public.customers (business_id, user_id, full_name, created_at) values (v_biz, v_cu, 'Gercek A', now() - interval '25 hours') returning id into v_c1;
   insert into public.customers (business_id, user_id, full_name, created_at) values (v_real, v_cu, 'Gercek B', now() - interval '25 hours') returning id into v_c2;

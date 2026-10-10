@@ -8,8 +8,9 @@
 //   RESEND_API_KEY  Resend API anahtarı. Yoksa e-postalar yine hazırlanır (veri yüklenir, şablon çizilir; hatalar
 //                   kuyrukta görünür) ama 'skipped' olarak işaretlenir. Eski e-postalar sonradan toplu gitmez.
 //   EMAIL_FROM      Örn. "Randevu <randevu@alanadin.com>". Varsayılan: Resend test adresi (yalnızca hesap sahibine gider).
-//   SITE_URL        Müşteri sitesi adresi (müşteri e-postalarındaki bağlantılar).
-//   PANEL_URL       İşletme paneli adresi (işletme e-postalarındaki bağlantı).
+//   SITE_URL        Müşteri sitesi adresi (müşteri e-postalarındaki bağlantılar). ZORUNLU: yoksa müşteri
+//                   e-postaları 'skipped / site_url_missing' olur (yanlış adrese bağlantı göndermektense).
+//   PANEL_URL       İşletme paneli adresi (işletme e-postalarındaki bağlantı). ZORUNLU, aynı kural.
 // SUPABASE_URL ve SUPABASE_SERVICE_ROLE_KEY Supabase tarafından otomatik verilir.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -35,10 +36,9 @@ type Business = {
   name: string; slug: string; address: string | null; city: string | null; phone: string | null; timezone: string;
 };
 
+// Deneme sınırının TEK kaynağı: claim_pending_emails'e parametre olarak verilir (veritabanında sabit yok).
 const MAX_ATTEMPTS = 3;
 const DEFAULT_FROM = "Randevu <onboarding@resend.dev>";
-const DEFAULT_SITE = "https://randevu-web-delta.vercel.app";
-const DEFAULT_PANEL = "https://randevu-panel-psi.vercel.app";
 
 // Bu durumdaki randevu için hangi e-posta türleri hâlâ anlamlı? (Kuyrukta bekleyen e-posta bayatlamış olabilir.)
 const VALID_STATUS: Record<OutboxKind, string[]> = {
@@ -60,11 +60,11 @@ Deno.serve(async () => {
 
   const resendKey = Deno.env.get("RESEND_API_KEY");
   const from = Deno.env.get("EMAIL_FROM") || DEFAULT_FROM;
-  const siteUrl = (Deno.env.get("SITE_URL") || DEFAULT_SITE).replace(/\/$/, "");
-  const panelUrl = (Deno.env.get("PANEL_URL") || DEFAULT_PANEL).replace(/\/$/, "");
+  const siteUrl = (Deno.env.get("SITE_URL") ?? "").replace(/\/$/, "");
+  const panelUrl = (Deno.env.get("PANEL_URL") ?? "").replace(/\/$/, "");
 
   const supabase = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
-  const { data: rows, error } = await supabase.rpc("claim_pending_emails", { p_limit: 20 });
+  const { data: rows, error } = await supabase.rpc("claim_pending_emails", { p_limit: 20, p_max_attempts: MAX_ATTEMPTS });
   if (error) return json({ error: error.message }, 500);
 
   const result = { sent: 0, skipped: 0, failed: 0, retry: 0, update_failed: 0 };
@@ -123,13 +123,20 @@ Deno.serve(async () => {
         continue;
       }
 
+      const isOwnerMail = row.kind.startsWith("owner_");
+      if (isOwnerMail ? !panelUrl : !siteUrl) {
+        await finish({ status: "skipped", error: isOwnerMail ? "panel_url_missing" : "site_url_missing" });
+        result.skipped++;
+        continue;
+      }
+
       const business = a.businesses as unknown as Business;
       const customer = a.customers as unknown as { full_name: string; phone: string | null; email: string | null } | null;
       const resourceName = (a.resources as unknown as { name: string } | null)?.name ?? "";
       const services = (a.appointment_items as unknown as { name: string; price_cents: number | null }[]) ?? [];
 
       let mail: BuiltEmail;
-      if (row.kind === "owner_new" || row.kind === "owner_cancelled" || row.kind === "owner_rescheduled") {
+      if (isOwnerMail) {
         // Ek form cevaplarının (plaka vb.) etiketlerini işletmenin soru listesinden al
         const { data: fields } = await supabase.from("booking_fields").select("key, label").eq("business_id", a.business_id);
         const labels = new Map((fields ?? []).map((f: { key: string; label: string }) => [f.key, f.label]));
