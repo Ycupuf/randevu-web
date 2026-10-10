@@ -67,10 +67,17 @@ Deno.serve(async () => {
   const { data: rows, error } = await supabase.rpc("claim_pending_emails", { p_limit: 20 });
   if (error) return json({ error: error.message }, 500);
 
-  const result = { sent: 0, skipped: 0, failed: 0, retry: 0 };
+  const result = { sent: 0, skipped: 0, failed: 0, retry: 0, update_failed: 0 };
 
   for (const row of (rows ?? []) as OutboxRow[]) {
-    const finish = (patch: Record<string, unknown>) => supabase.from("email_outbox").update(patch).eq("id", row.id);
+    // Durum güncellemesi başarısız olursa satır 'sending' kalır ve 5 dk sonra yeniden alınır; sessiz kalmasın.
+    const finish = async (patch: Record<string, unknown>) => {
+      const { error: updateError } = await supabase.from("email_outbox").update(patch).eq("id", row.id);
+      if (updateError) {
+        console.error(`email_outbox ${row.id} güncellenemedi: ${updateError.message}`);
+        result.update_failed++;
+      }
+    };
 
     const retryOrFail = async (reason: string) => {
       if (row.attempts >= MAX_ATTEMPTS) {
@@ -89,7 +96,7 @@ Deno.serve(async () => {
     };
 
     try {
-      const { data: a } = await supabase
+      const { data: a, error: loadError } = await supabase
         .from("appointments")
         .select(
           "id, status, starts_at, ends_at, note, cancel_reason, field_answers, business_id, businesses(name, slug, address, city, phone, timezone), resources(name), customers(full_name, phone, email), appointment_items(name, price_cents)",
@@ -97,6 +104,11 @@ Deno.serve(async () => {
         .eq("id", row.appointment_id)
         .maybeSingle();
 
+      // Geçici DB hatası "randevu yok" sayılmaz: e-posta kaybolmasın, yeniden denensin.
+      if (loadError) {
+        await retryOrFail(`load_failed: ${loadError.message.slice(0, 200)}`);
+        continue;
+      }
       if (!a) {
         await finish({ status: "skipped", error: "appointment_gone" });
         result.skipped++;

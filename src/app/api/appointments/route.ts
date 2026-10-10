@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import { createAppointmentSchema, fieldErrors } from "@/lib/schemas";
-import { isKnownDbError, translateDbError } from "@/lib/errors";
+import { translateDbError } from "@/lib/errors";
+import { dbErrorResponse } from "@/lib/api";
 
 // POST /api/appointments : giriş yapmış kullanıcı için randevu oluşturur.
 // Asıl doğrulama (süre, çalışma saati, çakışma, limitler) veritabanındaki create_appointment fonksiyonundadır;
@@ -44,11 +45,6 @@ export async function POST(request: NextRequest) {
     p_note: input.note,
   });
 
-  if (error) {
-    const info = translateDbError(error);
-    // `code`: istemci metne değil koda bakar (metin değişince akış bozulmasın)
-    const code = isKnownDbError(error) ? error.message.trim() : undefined;
-    return NextResponse.json({ error: info.message, code }, { status: info.status });
-  }
+  if (error) return dbErrorResponse(error);
   return NextResponse.json({ id }, { status: 201 });
 }

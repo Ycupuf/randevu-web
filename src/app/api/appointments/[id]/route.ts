@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import { patchAppointmentSchema } from "@/lib/schemas";
 import { translateDbError } from "@/lib/errors";
+import { dbErrorResponse } from "@/lib/api";
 
 // PATCH /api/appointments/:id : randevuyu iptal eder ya da başka bir saate taşır.
 export async function PATCH(request: NextRequest, ctx: RouteContext<"/api/appointments/[id]">) {
@@ -38,9 +39,6 @@ export async function PATCH(request: NextRequest, ctx: RouteContext<"/api/appoin
           p_resource_id: input.resourceId,
         });
 
-  if (error) {
-    const info = translateDbError(error);
-    return NextResponse.json({ error: info.message }, { status: info.status });
-  }
+  if (error) return dbErrorResponse(error);
   return NextResponse.json({ ok: true });
 }
