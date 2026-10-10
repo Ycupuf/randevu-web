@@ -145,6 +145,8 @@ değişmezleri zorlar (hesaplı müşterinin e-postası her zaman hesap e-postas
   demo işletmelerde **gerçek hesapla** alınan randevu ve müşteri kayıtları 24 saat sonra silinir.
 - E-posta kötüye kullanımına karşı alıcı başına saatte en fazla 30 e-posta kuyruğa girer.
 - `/auth/demo` ve `/auth/signout` yalnızca kendi sitesinden gelen isteği kabul eder (login CSRF).
+- **Oturum çerezi** `HttpOnly`, `Secure` (production) ve `SameSite=Lax`'tır: tarayıcı istemcisi yalnızca giriş bağlantısı
+  ister, oturumu okumaz; çerezi sunucu yazar ve okur. Access token ömrü 1 saattir (refresh token ile yenilenir).
 - Bağımsız iki inceleme turunda bulunan açıklar (e-posta bombalama, demo işletmesini silme, çapraz kiracı satır
   taşıma, personelin müşteri verisi) canlıda sömürüsü kanıtlandıktan sonra kapatıldı; migration 16-19 ve `supabase/tests`.
 - `npm audit`: üretim bağımlılıklarında açık yok; yüksek bulgular yalnızca geliştirme zinciridir (lint).

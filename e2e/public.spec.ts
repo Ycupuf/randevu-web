@@ -161,6 +161,12 @@ test.describe("demo girişi (e-postasız)", () => {
     await expect(page).toHaveURL(/\/randevu\/[0-9a-f-]{36}\?yeni=1/, { timeout: 15_000 });
     await expect(page.getByText("Randevun alındı.")).toBeVisible();
 
+    // Oturum çerezi JavaScript'ten okunamaz (XSS'te token çalınamasın)
+    const session = (await page.context().cookies()).filter((c) => /^sb-.*-auth-token/.test(c.name));
+    expect(session.length).toBeGreaterThan(0);
+    for (const c of session) expect(c.httpOnly, `${c.name} HttpOnly olmalı`).toBe(true);
+    expect(await page.evaluate(() => document.cookie)).not.toMatch(/auth-token/);
+
     await page.getByRole("button", { name: "Randevuyu iptal et" }).click();
     await page.getByRole("button", { name: "Evet, iptal et" }).click();
     await expect(page.getByText("Sen iptal ettin")).toBeVisible();

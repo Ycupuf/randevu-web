@@ -19,7 +19,13 @@ export async function proxy(request: NextRequest) {
           for (const { name, value } of cookiesToSet) request.cookies.set(name, value);
           response = NextResponse.next({ request });
           for (const { name, value, options } of cookiesToSet) {
-            response.cookies.set(name, value, options);
+            // Oturum çerezi yalnızca sunucuda okunur: HttpOnly (bkz. lib/supabase/cookies.ts)
+            response.cookies.set(name, value, {
+              ...options,
+              httpOnly: true,
+              secure: process.env.NODE_ENV === "production",
+              sameSite: "lax",
+            });
           }
           for (const [key, value] of Object.entries(headers ?? {})) {
             response.headers.set(key, value);

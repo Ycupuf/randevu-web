@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { Database } from "@/lib/database.types";
 import { env } from "@/lib/env";
+import { hardenSessionCookie } from "./cookies";
 
 /**
  * Sunucuda (sayfa, route handler) kullanılan Supabase istemcisi. Oturumu çerezlerden okur.
@@ -21,7 +22,7 @@ export async function createClient() {
         setAll(cookiesToSet) {
           try {
             for (const { name, value, options } of cookiesToSet) {
-              cookieStore.set(name, value, options);
+              cookieStore.set(name, value, hardenSessionCookie(options));
             }
           } catch {
             // Sunucu bileşenlerinde çerez yazılamaz; oturumu proxy.ts zaten yeniliyor.
